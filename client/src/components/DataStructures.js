@@ -7,7 +7,7 @@ export class DataStructures extends Component {
         return (
             <div>
                 <h1>Data Structures</h1>
-                <h2>Coming Soon</h2>
+                <h2>Coming Soon -> Basic Structures</h2>
             </div>
         );
     }
