@@ -1,7 +1,9 @@
 ﻿import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
-import { Glyphicon, Nav, Navbar, NavItem } from 'react-bootstrap';
+import { Col, Container, Row } from 'react-bootstrap';
+import { Nav, Navbar, NavDropdown, NavItem, Accordion } from 'react-bootstrap';
+import Card from 'react-bootstrap/Card';
 import { LinkContainer } from 'react-router-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import './NavMenu.css';
 
 export class NavMenu extends Component {
@@ -9,39 +11,40 @@ export class NavMenu extends Component {
 
   render() {
     return (
-      <Navbar inverse fixedTop fluid collapseOnSelect>
-        <Navbar.Header>
-          <Navbar.Brand>
-            <Link to={'/'}>Nick Lackman</Link>
-          </Navbar.Brand>
-          <Navbar.Toggle />
-        </Navbar.Header>
-        <Navbar.Collapse>
-          <Nav>
-            <LinkContainer to={'/'} exact>
-              <NavItem>
-                <Glyphicon glyph='home' /> Home
-              </NavItem>
+      <Navbar collapseOnSelect expand="md" bg="dark" variant="dark" fixed='top'>
+        <Navbar.Brand as={Nav.Link}>Nick Lackman</Navbar.Brand>
+        <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+        <Navbar.Collapse id="responsive-navbar-nav">>
+          <Nav className="flex-column">
+            <LinkContainer to="/">
+              <Nav.Link>
+                <h4>Home</h4>
+              </Nav.Link>
             </LinkContainer>
-            <LinkContainer to={'/education'}>
-              <NavItem>
-                <Glyphicon glyph='education' /> Education
-              </NavItem>
+            <LinkContainer to="/education">
+              <Nav.Link>
+                <h4>Education</h4>
+              </Nav.Link>
             </LinkContainer>
-            <LinkContainer to={'/experience'}>
-              <NavItem>
-                <Glyphicon glyph='th-list' /> Experience
-              </NavItem>
+            <LinkContainer to='/experience'>
+              <Nav.Link>
+                <h4>Experience</h4>
+              </Nav.Link>
             </LinkContainer>
-            <LinkContainer to={'/algorithms'}>
-                <NavItem>
-                    <Glyphicon glyph='grain' /> Algorithms
-                </NavItem>
+            <LinkContainer to='/algorithms'>
+              <Nav.Link>
+                <h4>Algorithms</h4>
+              </Nav.Link>
             </LinkContainer>
-            <LinkContainer to={'/data-structures'}>
-                <NavItem>
-                    <Glyphicon glyph='hdd' /> Data Structures
-                </NavItem>
+            <LinkContainer to="/data-structures">
+              <Nav.Link>
+                <h4>Data Structures</h4>
+              </Nav.Link>
+            </LinkContainer>
+            <LinkContainer to="/data-structures/arrays">
+              <Nav.Link>
+                Arrays
+              </Nav.Link>
             </LinkContainer>
           </Nav>
         </Navbar.Collapse>
