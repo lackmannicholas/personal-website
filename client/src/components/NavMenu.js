@@ -26,7 +26,6 @@ export class NavMenu extends Component {
                 </LinkContainer>
               </Accordion.Toggle> 
               <Accordion.Toggle as={Card.Header} eventKey="1">
-              <FontAwesomeIcon icon="coffee" />
                 <LinkContainer to="/education">
                   <Nav.Link>
                     <FontAwesomeIcon icon={faGraduationCap} />
