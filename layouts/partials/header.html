@@ -1,0 +1,13 @@
+  <header class="header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="Nick Lackman, home"><span class="monogram" aria-hidden="true">NL<span>.</span></span><span class="brand-name">Nick Lackman</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/#work">Work</a>
+        {{- if where site.RegularPages "Section" "writing" }}
+        <a href="/writing/"{{ if eq .Section "writing" }} aria-current="page"{{ end }}>Writing</a>
+        {{- end }}
+        <a href="/#experience">Experience</a>
+        <a href="/#contact">Contact <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>

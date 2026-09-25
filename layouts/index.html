@@ -1,41 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-	<meta name="generator" content="Hugo 0.166.0"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111312">
-  <title>Nick Lackman — Agent Platform &amp; Real-Time Systems</title>
-  <meta name="description" content="Nick Lackman is a Staff Software Engineer who builds agent platforms and real-time voice systems: the layer other engineers build their agents on.">
-  <meta name="author" content="Nick Lackman">
-  <link rel="canonical" href="http://localhost:1313/">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="http://localhost:1313/">
-  <meta property="og:title" content="Nick Lackman — Agent Platform &amp; Real-Time Systems">
-  <meta property="og:description" content="Nick Lackman is a Staff Software Engineer who builds agent platforms and real-time voice systems: the layer other engineers build their agents on.">
-  <meta property="og:site_name" content="Nick Lackman">
-  <meta name="twitter:card" content="summary">
-  <link rel="alternate" type="application/rss+xml" href="http://localhost:1313/index.xml" title="Nick Lackman — Agent Platform &amp; Real-Time Systems">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111312'/%3E%3Cpath d='M8 24V8h4l8 11V8h4v16h-4L12 13v11Z' fill='%23fa625c'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="/css/site.css">
-
-</head>
-<body>
-  <a class="skip" href="#main">Skip to content</a>
-    <header class="header">
-    <div class="shell header-inner">
-      <a class="brand" href="/" aria-label="Nick Lackman, home"><span class="monogram" aria-hidden="true">NL<span>.</span></span><span class="brand-name">Nick Lackman</span></a>
-      <nav aria-label="Main navigation">
-        <a href="/#work">Work</a>
-        <a href="/writing/">Writing</a>
-        <a href="/#experience">Experience</a>
-        <a href="/#contact">Contact <span aria-hidden="true">↗</span></a>
-      </nav>
-    </div>
-  </header>
-
-  <main id="main">
-
+{{ define "main" }}
     <section class="hero shell" id="top" aria-labelledby="hero-title">
       <div class="hero-kicker"><span class="eyebrow">Staff Software Engineer · Agent Platform &amp; Real-Time Systems</span><span class="location">Seattle area · Washington</span></div>
       <div class="hero-grid">
@@ -100,28 +63,24 @@
         <div class="project-grid"><div class="project-copy"><h3 id="agentix-title">Agentix</h3><p>An orchestration framework I built by extracting core agent logic into a reusable Python package. Six production agents across fifteen channels were built on it. When the organization standardized on the OpenAI Agents SDK, I led the migration off the framework I had built.</p></div><div class="voice-panel"><p class="small-label">What carried over</p><ul class="integration-list"><li><span>Durable</span><strong>Interfaces other teams depended on</strong></li><li><span>Replaceable</span><strong>The framework underneath</strong></li></ul></div></div>
       </article>
     </section>
+
+    {{- $posts := where site.RegularPages "Section" "writing" -}}
+    {{- with first 5 $posts }}
     <section class="shell section" id="writing" aria-labelledby="writing-title" style="padding-top:0">
       <div class="section-heading"><div><p class="eyebrow">02 / Writing</p><h2 id="writing-title">Notes from<br>production.</h2></div><p class="section-intro">What real-time voice and agent systems teach you once real users are on the line. <a href="/writing/" style="text-decoration:underline;text-underline-offset:5px">All writing ↗</a></p></div>
-      <ul class="writing-list">
-  <li><a href="/writing/async-def-is-lying-to-you/">
-    <div>
-      <h3>Your <code>async def</code> is lying to you</h3><p>Blocking work hiding inside async Python, and what it costs a real-time voice path.</p>
-    </div>
-    <span class="writing-meta">Sep 2026 · python</span>
-  </a></li>
-</ul>
-
+      {{ partial "post-list.html" . }}
     </section>
+    {{- end }}
 
     <section class="experience-section" id="experience" aria-labelledby="experience-title"><div class="shell section">
       <div class="section-heading"><div><p class="eyebrow">03 / Experience</p><h2 id="experience-title">Hands-on depth.<br>Cross-team perspective.</h2></div><p class="section-intro">Individual contribution, informed by having led engineering teams, a platform group, and a startup’s engineering function.</p></div>
       <div class="experience-layout"><div class="experience-intro"><p class="large-number">13</p><p class="experience-years">years in software engineering</p><p class="experience-aside">Self-taught. BBA and MS in CIS, Boston University.</p></div><div class="timeline">
         <article><div class="timeline-label">Current · RealPage, Agentic AI</div><h3>Staff Software Engineer</h3><p class="timeline-subtitle">Agent platform &amp; real-time voice · 100% hands-on, no direct reports · Title of record: Sr. Manager, Agentic AI Engineering (HR classification)</p><ul><li>Co-owner of the internal Agent Platform, accountable for the whole system.</li><li>Built the foundation of the Lumina Workforce agent harness, about 7,000 live calls a day.</li><li>Built Agentix, then led the migration to the OpenAI Agents SDK.</li><li>Proposed and designed reference-free audio evals.</li></ul></article>
-        
+        <!-- VERIFY: exact title of record for the Knock / RealPage management role. -->
         <article><div class="timeline-label">RealPage / Knock</div><h3>Senior Software Engineering Manager</h3><p class="timeline-subtitle">Platform &amp; Infrastructure as Code</p><p>Led platform and IaC work, including reusable Terraform stacks that cut environment creation from six months to one day. At peak, led 24 engineers across four teams before choosing to return to IC work.</p></article>
         <article><div class="timeline-label">Knock</div><h3>Application &amp; platform modernization</h3><p class="timeline-subtitle">Backend systems · Python · APIs</p><p>Led a Python 2.7-to-3.6 migration spanning 600,000 lines of code and 800 endpoints.</p></article>
         <article><div class="timeline-label">OceanSmart</div><h3>Founding Engineer &amp; Acting Head of Engineering</h3><p class="timeline-subtitle">~40-person company</p><p>Built the product as a founding engineer and set technical direction with the CEO and investors. The company reached profitability within 18 months.</p></article>
-        
+        <!-- VERIFY: titles and dates for Oceaneering and CGI. -->
         <article><div class="timeline-label">Oceaneering &amp; CGI</div><h3>Software Engineer</h3><p class="timeline-subtitle">Enterprise systems · Java</p><p>Started my career shipping production Java.</p></article>
       </div></div>
     </div></section>
@@ -129,40 +88,13 @@
     <section class="shell section" id="contact" aria-labelledby="contact-title">
       <div class="section-heading"><div><p class="eyebrow">04 / Contact</p><h2 id="contact-title">Let’s talk.</h2></div><p class="section-intro">Agent platforms, real-time systems, and the evaluation problems in between.</p></div>
       <div class="contact-grid">
-        <a href="mailto:nick@lackman.dev"><span>Email</span><strong>nick@lackman.dev<em aria-hidden="true">↗</em></strong></a>
-        <a href="https://github.com/lackmannicholas"><span>GitHub</span><strong>lackmannicholas<em aria-hidden="true">↗</em></strong></a>
+        <a href="mailto:{{ site.Params.email }}"><span>Email</span><strong>{{ site.Params.email }}<em aria-hidden="true">↗</em></strong></a>
+        {{- with site.Params.linkedin }}
+        <a href="{{ . }}"><span>LinkedIn</span><strong>Nick Lackman<em aria-hidden="true">↗</em></strong></a>
+        {{- end }}
+        <a href="https://github.com/{{ site.Params.github }}"><span>GitHub</span><strong>{{ site.Params.github }}<em aria-hidden="true">↗</em></strong></a>
       </div>
       <div class="closing"><span class="closing-mark" aria-hidden="true">NL.</span><div><p class="eyebrow">What I want to do next</p><p>Own a core agent primitive.<br>Make it useful across teams.<br><span>Keep improving it in production.</span></p></div></div>
     </section>
   
-
-  </main>
-    <footer class="footer"><div class="shell footer-inner">
-    <p>Nick Lackman <span>Staff Software Engineer · Seattle area</span></p>
-    <div class="footer-links">
-      <a href="/writing/">Writing <span aria-hidden="true">↗</span></a>
-      <a href="/writing/index.xml">RSS <span aria-hidden="true">↗</span></a>
-      <a href="mailto:nick@lackman.dev">Email <span aria-hidden="true">↗</span></a>
-      <a href="https://github.com/lackmannicholas">GitHub <span aria-hidden="true">↗</span></a>
-    </div>
-  </div></footer>
-
-  <script>
-
-const links = Array.from(document.querySelectorAll('nav a')).filter(a => a.pathname === location.pathname && a.hash);
-const sections = links.map(a => document.querySelector(a.hash)).filter(Boolean);
-if (sections.length && 'IntersectionObserver' in window) {
-  const observer = new IntersectionObserver(entries => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      for (const a of links) {
-        if (a.hash === '#' + entry.target.id) a.setAttribute('aria-current', 'location');
-        else a.removeAttribute('aria-current');
-      }
-    }
-  }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
-  sections.forEach(s => observer.observe(s));
-}
-  </script>
-</body>
-</html>
+{{ end }}

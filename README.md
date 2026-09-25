@@ -1,70 +1,51 @@
-# Getting Started with Create React App
+# nicklackman.com
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Personal site and writing. Built with [Hugo](https://gohugo.io): Markdown in, static HTML out.
+No JavaScript framework and no node_modules, so it keeps building for years.
 
-## Available Scripts
+## Writing a post
 
-In the project directory, you can run:
+```
+hugo new content writing/my-post-name.md   # file name becomes the URL: /writing/my-post-name/
+hugo server -D                             # preview at http://localhost:1313, drafts included
+```
 
-### `yarn start`
+Front matter:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+| Field | Purpose |
+|---|---|
+| `title` | Headline. Markdown allowed, e.g. `` `async def` `` |
+| `description` | One sentence for lists, search results, and link previews |
+| `date` | Publication date |
+| `lastmod` | Bump when you revise; the article shows "Updated" |
+| `tags` | First tag shows in lists; each tag gets `/tags/<tag>/` |
+| `draft` | `true` until ready. Drafts are never deployed |
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Rules that keep links working for a decade:
 
-### `yarn test`
+- **Never rename a published file.** The file name is the URL. Retitling is fine.
+- Revise evergreen posts in place and bump `lastmod`, rather than writing "part 2" replacements.
+- Cross-post to dev.to or LinkedIn with the canonical URL set to the nicklackman.com article.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Deploy
 
-### `yarn build`
+```
+brew install hugo   # once
+BUCKET=nicklackman.com DISTRIBUTION_ID=E37HOY2EC40ION ./infra/deploy.sh
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Layout
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
+content/writing/     posts (Markdown)
+layouts/             page templates (home, list, article, 404)
+static/css/site.css  all styles
+static/for/          company-specific pages (gitignored, deployed from your machine)
+hugo.toml            site settings: email, GitHub, LinkedIn, permalinks
+infra/               CloudFront Function and deploy script
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+The Writing link in the nav and the Writing section on the home page appear
+automatically once the first non-draft post exists.
 
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+First-time AWS setup is in [DEPLOY.md](DEPLOY.md).

@@ -1,0 +1,37 @@
+baseURL = "https://nicklackman.com/"
+locale = "en-US"
+title = "Nick Lackman — Agent Platform & Real-Time Systems"
+enableRobotsTXT = false
+disableKinds = ["taxonomy"]   # no /tags/ index page; each tag still gets /tags/<tag>/
+
+[params]
+  author = "Nick Lackman"
+  description = "Nick Lackman is a Staff Software Engineer who builds agent platforms and real-time voice systems: the layer other engineers build their agents on."
+  email = "nick@lackman.dev"
+  github = "lackmannicholas"
+  linkedin = ""               # full URL, e.g. https://www.linkedin.com/in/... (empty hides it)
+
+[taxonomies]
+  tag = "tags"
+
+[permalinks.page]
+  writing = "/writing/:contentbasename/"   # URL = file name; retitling never breaks links
+
+[outputs]
+  home = ["HTML", "RSS"]
+  section = ["HTML", "RSS"]
+  term = ["HTML"]
+
+[services.rss]
+  limit = 50
+
+[markup.goldmark.renderer]
+  unsafe = false
+
+[markup.highlight]
+  noClasses = true
+  style = "github-dark"
+  tabWidth = 4
+
+[sitemap]
+  changeFreq = "monthly"

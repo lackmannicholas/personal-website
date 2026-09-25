@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>Writing on Nick Lackman — Agent Platform &amp; Real-Time Systems</title>
+		<link>http://localhost:1313/writing/</link>
+		<description>Recent content in Writing on Nick Lackman — Agent Platform &amp; Real-Time Systems</description>
+		<generator>Hugo</generator>
+		<language>en-US</language>
+		
+		
+		
+		
+			<lastBuildDate>Thu, 24 Sep 2026 00:00:00 +0000</lastBuildDate>
+		
+			<atom:link href="http://localhost:1313/writing/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>Your `async def` is lying to you</title>
+				<link>http://localhost:1313/writing/async-def-is-lying-to-you/</link>
+				<pubDate>Thu, 24 Sep 2026 00:00:00 +0000</pubDate>
+				<guid>http://localhost:1313/writing/async-def-is-lying-to-you/</guid>
+				<description>&lt;p&gt;TODO: open with the symptom: latency on the voice path that no single span explained.&lt;/p&gt;&#xA;&lt;h2 id=&#34;the-symptom&#34;&gt;The symptom&lt;/h2&gt;&#xA;&lt;p&gt;TODO: what the traces showed, and why the event loop didn&amp;rsquo;t look busy.&lt;/p&gt;&#xA;&lt;h2 id=&#34;what-async-def-does-and-doesnt-promise&#34;&gt;What &lt;code&gt;async def&lt;/code&gt; does and doesn&amp;rsquo;t promise&lt;/h2&gt;&#xA;&lt;p&gt;An &lt;code&gt;async def&lt;/code&gt; only yields at an &lt;code&gt;await&lt;/code&gt;. Anything synchronous inside it holds the event loop, and every other coroutine waits:&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff7b72&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#ff7b72&#34;&gt;asyncio&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff7b72&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#ff7b72&#34;&gt;time&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff7b72&#34;&gt;async&lt;/span&gt; &lt;span style=&#34;color:#ff7b72&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#d2a8ff;font-weight:bold&#34;&gt;handle_turn&lt;/span&gt;():&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    time&lt;span style=&#34;color:#ff7b72;font-weight:bold&#34;&gt;.&lt;/span&gt;sleep(&lt;span style=&#34;color:#a5d6ff&#34;&gt;0.2&lt;/span&gt;)            &lt;span style=&#34;color:#8b949e;font-style:italic&#34;&gt;# blocks the whole event loop&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff7b72&#34;&gt;await&lt;/span&gt; asyncio&lt;span style=&#34;color:#ff7b72;font-weight:bold&#34;&gt;.&lt;/span&gt;sleep(&lt;span style=&#34;color:#a5d6ff&#34;&gt;0.2&lt;/span&gt;)   &lt;span style=&#34;color:#8b949e;font-style:italic&#34;&gt;# yields; other calls keep flowing&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;TODO: the less obvious offenders you found (sync SDK calls, CPU-bound audio work, logging, JSON on large payloads).&lt;/p&gt;</description>
+			</item>
+	</channel>
+</rss>

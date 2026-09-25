@@ -1,0 +1,30 @@
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111312">
+  {{- $plain := .Title | markdownify | plainify | htmlUnescape }}
+  {{- $title := cond .IsHome site.Title (printf "%s — Nick Lackman" $plain) }}
+  {{- $desc := .Description | default .Summary | default site.Params.description | plainify | htmlUnescape | truncate 180 }}
+  <title>{{ $title }}</title>
+  <meta name="description" content="{{ $desc }}">
+  <meta name="author" content="{{ site.Params.author }}">
+  <link rel="canonical" href="{{ .Permalink }}">
+  <meta property="og:type" content="{{ if and .IsPage (eq .Section "writing") }}article{{ else }}website{{ end }}">
+  <meta property="og:url" content="{{ .Permalink }}">
+  <meta property="og:title" content="{{ $title }}">
+  <meta property="og:description" content="{{ $desc }}">
+  <meta property="og:site_name" content="Nick Lackman">
+  <meta name="twitter:card" content="summary">
+  {{- with .OutputFormats.Get "rss" }}
+  <link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ site.Title }}">
+  {{- else }}
+  <link rel="alternate" type="application/rss+xml" href="{{ "writing/index.xml" | absURL }}" title="Nick Lackman — Writing">
+  {{- end }}
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111312'/%3E%3Cpath d='M8 24V8h4l8 11V8h4v16h-4L12 13v11Z' fill='%23fa625c'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/site.css">
+  {{- if and .IsPage (eq .Section "writing") }}
+  <meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+  <meta property="article:modified_time" content="{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}">
+  <script type="application/ld+json">
+  {{- dict "@context" "https://schema.org" "@type" "BlogPosting" "headline" $plain "description" $desc "datePublished" (.Date.Format "2006-01-02") "dateModified" (.Lastmod.Format "2006-01-02") "url" .Permalink "author" (dict "@type" "Person" "name" site.Params.author "url" site.BaseURL) | jsonify | safeJS }}
+  </script>
+  {{- end }}

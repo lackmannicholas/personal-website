@@ -1,0 +1,12 @@
+{{ define "main" }}
+    <section class="shell section" aria-labelledby="list-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">{{ if eq .Kind "term" }}Tag{{ else }}Writing{{ end }}</p>
+          <h1 id="list-title" class="page-title">{{ if eq .Kind "term" }}{{ .Title }}{{ else }}Notes from<br>production.{{ end }}</h1>
+        </div>
+        <p class="section-intro">{{ with .Description }}{{ . }}{{ else }}Deep dives on agent platforms, real-time systems, and evaluation.{{ end }} <a href="/writing/index.xml" style="text-decoration:underline;text-underline-offset:5px">RSS</a></p>
+      </div>
+      {{ with .Pages }}{{ partial "post-list.html" . }}{{ else }}<p class="section-intro" style="max-width:none">First pieces are in progress.</p>{{ end }}
+    </section>
+{{ end }}

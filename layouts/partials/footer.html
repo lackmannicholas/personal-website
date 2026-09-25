@@ -1,0 +1,14 @@
+  <footer class="footer"><div class="shell footer-inner">
+    <p>Nick Lackman <span>Staff Software Engineer · Seattle area</span></p>
+    <div class="footer-links">
+      {{- if where site.RegularPages "Section" "writing" }}
+      <a href="/writing/">Writing <span aria-hidden="true">↗</span></a>
+      <a href="/writing/index.xml">RSS <span aria-hidden="true">↗</span></a>
+      {{- end }}
+      <a href="mailto:{{ site.Params.email }}">Email <span aria-hidden="true">↗</span></a>
+      {{- with site.Params.linkedin }}
+      <a href="{{ . }}">LinkedIn <span aria-hidden="true">↗</span></a>
+      {{- end }}
+      <a href="https://github.com/{{ site.Params.github }}">GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </div></footer>

@@ -1,0 +1,21 @@
+{{ define "main" }}
+    <article class="shell article" aria-labelledby="article-title">
+      <header class="article-header">
+        <p class="eyebrow"><a href="/writing/">Writing</a> · <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time> · {{ .ReadingTime }} min read</p>
+        <h1 id="article-title">{{ .Title | markdownify }}</h1>
+        {{- with .Description }}<p class="article-dek">{{ . | markdownify }}</p>{{ end }}
+      </header>
+      <div class="prose">
+{{ .Content }}
+      </div>
+      <footer class="article-footer">
+        {{- if ne (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02") }}
+        <p class="small-label">Updated {{ .Lastmod.Format "January 2, 2006" }}</p>
+        {{- end }}
+        {{- with .GetTerms "tags" }}
+        <ul class="tag-list" aria-label="Tags">{{ range . }}<li><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></li>{{ end }}</ul>
+        {{- end }}
+        <p class="article-byline">Written by Nick Lackman, who builds agent platforms and real-time voice systems. <a href="/">More about me</a> · <a href="/writing/">More writing</a></p>
+      </footer>
+    </article>
+{{ end }}
