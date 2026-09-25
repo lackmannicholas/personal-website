@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111312">
+  <title>I Tested Our WebSocket Audio Pipeline with WebRTC. Here’s Why I Switched It Back. — Nick Lackman</title>
+  <meta name="description" content="A production proof-of-concept comparing WebSocket and WebRTC transport for PSTN voice AI: same latency, same audio quality, and why the boring pipeline won.">
+  <meta name="author" content="Nick Lackman">
+  <link rel="canonical" href="http://localhost:1313/writing/websockets-vs-webrtc/">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://localhost:1313/writing/websockets-vs-webrtc/">
+  <meta property="og:title" content="I Tested Our WebSocket Audio Pipeline with WebRTC. Here’s Why I Switched It Back. — Nick Lackman">
+  <meta property="og:description" content="A production proof-of-concept comparing WebSocket and WebRTC transport for PSTN voice AI: same latency, same audio quality, and why the boring pipeline won.">
+  <meta property="og:site_name" content="Nick Lackman">
+  <meta name="twitter:card" content="summary">
+  <link rel="alternate" type="application/rss+xml" href="http://localhost:1313/writing/index.xml" title="Nick Lackman — Writing">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111312'/%3E%3Cpath d='M8 24V8h4l8 11V8h4v16h-4L12 13v11Z' fill='%23fa625c'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/site.css">
+  <meta property="article:published_time" content="2026-03-11T04:01:01Z">
+  <meta property="article:modified_time" content="2026-03-11T04:01:01Z">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Nick Lackman","url":"http://localhost:1313/"},"dateModified":"2026-03-11","datePublished":"2026-03-11","description":"A production proof-of-concept comparing WebSocket and WebRTC transport for PSTN voice AI: same latency, same audio quality, and why the boring pipeline won.","headline":"I Tested Our WebSocket Audio Pipeline with WebRTC. Here’s Why I Switched It Back.","url":"http://localhost:1313/writing/websockets-vs-webrtc/"}
+  </script>
+
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+    <header class="header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="Nick Lackman, home"><span class="monogram" aria-hidden="true">NL<span>.</span></span><span class="brand-name">Nick Lackman</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/#work">Work</a>
+        <a href="/writing/" aria-current="page">Writing</a>
+        <a href="/#experience">Experience</a>
+        <a href="/#contact">Contact <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <article class="shell article" aria-labelledby="article-title">
+      <header class="article-header">
+        <p class="eyebrow"><a href="/writing/">Writing</a> · <time datetime="2026-03-11">March 11, 2026</time> · 5 min read</p>
+        <h1 id="article-title">I Tested Our WebSocket Audio Pipeline with WebRTC. Here&rsquo;s Why I Switched It Back.</h1><p class="article-dek">A production proof-of-concept comparing WebSocket and WebRTC transport for PSTN voice AI: same latency, same audio quality, and why the boring pipeline won.</p>
+      </header>
+      <div class="prose">
+<p>There&rsquo;s a prevailing assumption in the voice AI space that WebRTC is inherently better than WebSockets for real-time audio. Better latency, better quality, better everything. I built a full proof-of-concept to test that assumption on an enterprise scale production AI voice system.</p>
+<p>I found a few things surprising.</p>
+<h2 id="the-setup">The Setup</h2>
+<p>Our system takes inbound phone calls, pipes the audio through an AI agent (OpenAI Realtime API), and sends the response back to the caller. The current architecture uses Twilio Programmable Voice with WebSocket media streams — G.711 μ-law audio at 8kHz using WebSocket protocol.</p>
+<p>The hypothesis was straightforward: replace the WebSocket media path with WebRTC via LiveKit, and we&rsquo;d get lower latency (UDP instead of TCP, no WebSocket framing overhead) and better audio quality (Opus codec at 48kHz instead of G.711 at 8kHz).</p>
+<p>I built the full integration — LiveKit Cloud as the media server, Twilio Elastic SIP Trunking for the PSTN connection, a transport abstraction layer so both paths could run side by side, and a real-time audio pacer to handle frame timing. The key here was adding this new transport path without changing any of the LLM orchestration or Agent configuration and tools. It should work the exact same as production with the exception of using Livekit/SIP/WebRTC rather than Twilio/ProgrammableVoice/Websockets.</p>
+<p>Measuring the delta was necessary to take any meaningful insights from this proof-of-concept.</p>
+<h2 id="the-latency-result">The Latency Result</h2>
+<p>Median response latency (time from when the caller stops speaking to when the AI starts responding):</p>
+<p><strong>WebSocket path: ~1,920ms
+WebRTC path: ~2,060ms</strong></p>
+<p>Essentially identical. The theoretical 50–150ms savings from eliminating WebSocket overhead is real, but invisible against 2+ seconds of LLM response time. The transport layer accounts for less than 5% of total conversational latency. The bottleneck is the model, not the pipe. The thing I found interesting about this is the conversation around websockets vs WebRTC for real-time AI. &ldquo;WebRTC is always better&rdquo; is the general consensus. While WebRTC is the superior transport mechanism for real-time communications - literally in the name, the efficiency benefits are hard to see when model inference is 500ms-4s.</p>
+<h2 id="the-audio-quality-result">The Audio Quality Result</h2>
+<p>Both paths delivered the same audio quality — because both paths carry the same audio. When a caller dials from a phone, the audio enters the PSTN as G.711 μ-law at 8kHz. That&rsquo;s a hard ceiling imposed by the telephone network. It doesn&rsquo;t matter whether those bytes travel over a WebSocket or a WebRTC connection; the frequency content is identical. You can&rsquo;t recover information that was never captured at the source. Said a different way, you can go from low quality audio encoding to high quality audio encoding and expect a better sounding output.</p>
+<h3 id="spectral-analysis">Spectral Analysis</h3>
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/l3z2wnzo225n7nni7ss7.png" alt="Image description"></p>
+<h2 id="the-surprise-webrtc-sounded-worse-at-first">The Surprise: WebRTC Sounded Worse at First</h2>
+<p>The initial WebRTC implementation actually sounded worse than WebSocket — choppy audio, dropped words, audible artifacts. It took real debugging to figure out why.</p>
+<p>WebRTC&rsquo;s jitter buffer is designed for network jitter. It smoothing out packets that arrive with variable timing from a remote peer over UDP. It is not designed to handle an application dumping large bursts of AI-generated audio into the WebRTC stack all at once.</p>
+<p>When the LLM generates a response, the audio arrives in variable-sized chunks — sometimes 50ms of audio, sometimes 500ms, delivered as fast as the model can produce it. The OpenAI Realtime API delivers fairly consistent audio chunks, but it&rsquo;s not exact and not in the way that is expected for PSTN. Our WebSocket implementation had a strict real-time pacer that metered these chunks out at exactly one frame per 20ms with prebuffering and underrun detection. Without that same pacer on the WebRTC path, the audio sounded terrible.</p>
+<p>The fix was porting the same pacer architecture to the WebRTC path. Once both paths had identical frame-level timing discipline, the audio quality matched. The lesson: application-level pacing of AI-generated audio is your responsibility regardless of transport. WebRTC handles network timing, not application timing.</p>
+<h2 id="where-webrtc-actually-wins">Where WebRTC Actually Wins</h2>
+<p>I also tested a WebRTC-native path with no PSTN involved — a browser client connecting directly to the AI agent via LiveKit with Opus at 24kHz. The difference was dramatic:</p>
+<ul>
+<li>99% audio bandwidth: 8,438 Hz (vs. ~3,969 Hz for PSTN paths)</li>
+<li>2x+ frequency content — you can hear breathiness, sibilants, natural voice texture</li>
+<li>Fewest signal artifacts of all three paths</li>
+<li>Same latency as the other paths (still LLM-bound)</li>
+</ul>
+<p>WebRTC is transformatively better when the caller isn&rsquo;t on a phone. The technology delivers on its promise — just not for PSTN calls.</p>
+<h2 id="the-takeaway">The Takeaway</h2>
+<p>The right question isn&rsquo;t &ldquo;should we use WebRTC?&rdquo; It&rsquo;s &ldquo;where is the bottleneck?&rdquo; For PSTN-based AI voice calls today, the telephone network limits quality, and the LLM limits speed. Changing the transport layer between those two bottlenecks doesn&rsquo;t move the needle.</p>
+<p>WebRTC becomes the right answer when one of these changes: callers move to VoIP/browser/app clients (removing the PSTN quality ceiling), LLM response times drop by an order of magnitude (making transport latency a meaningful fraction of total latency), or wideband codecs become available end-to-end on SIP trunks.</p>
+<p>While WebRTC is the de facto real-time communication protocol, we have millions of phone numbers and deeply ingrained Twilio Programmable Voice integrations. Switching would mean setting up new infrastructure, changing the call routing logic, additional overhead of managing a media server ourselves or paying for a cloud service like livekit. SIP/WebRTC needed to be a significant improvement over Twilio/Websockets to justify the migration, and it was about the same.</p>
+<p>If you are already deeply integrated with Twilio and their Programmable Voice, the boring WebSocket pipeline with a well-tuned audio pacer is the right architecture. Sometimes the best engineering decision is knowing when not to ship.</p>
+
+      </div>
+      <footer class="article-footer">
+        <ul class="tag-list" aria-label="Tags"><li><a href="/tags/webrtc/">Webrtc</a></li><li><a href="/tags/websockets/">Websockets</a></li><li><a href="/tags/voice-ai/">Voice-Ai</a></li><li><a href="/tags/telephony/">Telephony</a></li></ul>
+        <p class="article-byline">Written by Nick Lackman, who builds agent platforms and real-time voice systems. <a href="/">More about me</a> · <a href="/writing/">More writing</a></p>
+      </footer>
+    </article>
+
+  </main>
+    <footer class="footer"><div class="shell footer-inner">
+    <p>Nick Lackman <span>Staff Software Engineer · Seattle area</span></p>
+    <div class="footer-links">
+      <a href="/writing/">Writing <span aria-hidden="true">↗</span></a>
+      <a href="/writing/index.xml">RSS <span aria-hidden="true">↗</span></a>
+      <a href="mailto:nick@lackman.dev">Email <span aria-hidden="true">↗</span></a>
+      <a href="https://www.linkedin.com/in/lackmannicholas">LinkedIn <span aria-hidden="true">↗</span></a>
+      <a href="https://github.com/lackmannicholas">GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </div></footer>
+
+  <script>
+
+const links = Array.from(document.querySelectorAll('nav a')).filter(a => a.pathname === location.pathname && a.hash);
+const sections = links.map(a => document.querySelector(a.hash)).filter(Boolean);
+if (sections.length && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      for (const a of links) {
+        if (a.hash === '#' + entry.target.id) a.setAttribute('aria-current', 'location');
+        else a.removeAttribute('aria-current');
+      }
+    }
+  }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+}
+  </script>
+</body>
+</html>

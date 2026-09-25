@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111312">
+  <title>Python Is Lying to You: Async Pitfalls in Real-Time Audio Pipelines — Nick Lackman</title>
+  <meta name="description" content="Why async def doesn&#39;t mean non-blocking: CPU-bound guardrails, blocking loggers, and GIL contention that degrade production voice AI audio, and the fixes.">
+  <meta name="author" content="Nick Lackman">
+  <link rel="canonical" href="http://localhost:1313/writing/python-is-lying-to-you/">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://localhost:1313/writing/python-is-lying-to-you/">
+  <meta property="og:title" content="Python Is Lying to You: Async Pitfalls in Real-Time Audio Pipelines — Nick Lackman">
+  <meta property="og:description" content="Why async def doesn&#39;t mean non-blocking: CPU-bound guardrails, blocking loggers, and GIL contention that degrade production voice AI audio, and the fixes.">
+  <meta property="og:site_name" content="Nick Lackman">
+  <meta name="twitter:card" content="summary">
+  <link rel="alternate" type="application/rss+xml" href="http://localhost:1313/writing/index.xml" title="Nick Lackman — Writing">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111312'/%3E%3Cpath d='M8 24V8h4l8 11V8h4v16h-4L12 13v11Z' fill='%23fa625c'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/site.css">
+  <meta property="article:published_time" content="2026-06-12T04:14:07Z">
+  <meta property="article:modified_time" content="2026-06-12T04:14:07Z">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Nick Lackman","url":"http://localhost:1313/"},"dateModified":"2026-06-12","datePublished":"2026-06-12","description":"Why async def doesn\u0026#39;t mean non-blocking: CPU-bound guardrails, blocking loggers, and GIL contention that degrade production voice AI audio, and the fixes.","headline":"Python Is Lying to You: Async Pitfalls in Real-Time Audio Pipelines","url":"http://localhost:1313/writing/python-is-lying-to-you/"}
+  </script>
+
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+    <header class="header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="Nick Lackman, home"><span class="monogram" aria-hidden="true">NL<span>.</span></span><span class="brand-name">Nick Lackman</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/#work">Work</a>
+        <a href="/writing/" aria-current="page">Writing</a>
+        <a href="/#experience">Experience</a>
+        <a href="/#contact">Contact <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <article class="shell article" aria-labelledby="article-title">
+      <header class="article-header">
+        <p class="eyebrow"><a href="/writing/">Writing</a> · <time datetime="2026-06-12">June 12, 2026</time> · 13 min read</p>
+        <h1 id="article-title">Python Is Lying to You: Async Pitfalls in Real-Time Audio Pipelines</h1><p class="article-dek">Why async def doesn&rsquo;t mean non-blocking: CPU-bound guardrails, blocking loggers, and GIL contention that degrade production voice AI audio, and the fixes.</p>
+      </header>
+      <div class="prose">
+<p>If you&rsquo;re building voice AI with async Python, your audio quality is probably worse than it needs to be — and the bottleneck isn&rsquo;t where you think it is.</p>
+<p>I&rsquo;ve spent the last two years building production voice AI systems — real-time pipelines handling thousands of calls per day over PSTN telephony. The stack is what you&rsquo;d expect: STT, LLM reasoning, TTS, Speech-to-Speech, guardrails, tool calls, all wired together with async Python and streaming over websockets.</p>
+<p>Along the way I&rsquo;ve hunted down a specific category of bug that I think is more common than people realize: code that works correctly, passes every test, and makes the AI sound terrible. Not wrong answers — terrible <em>audio</em>. Stutters, gaps, unnatural pauses. The kind of artifacts that make callers hang up even though the AI gave the right answer.</p>
+<p>These often traces back to the same root cause: Python&rsquo;s async model doesn&rsquo;t actually guarantee what most developers think it guarantees. And in a domain where timing matters at the millisecond level, those gaps in the guarantee become audible.</p>
+<p>Here&rsquo;s what I found, what caused it, and how I fixed it.</p>
+<hr>
+<h2 id="the-promise">The Promise</h2>
+<p>Here&rsquo;s the setup: you&rsquo;ve built a voice AI pipeline. S2S or STT feeds into an LLM, the LLM reasons and calls tools, TTS converts the response to speech or S2S response, and guardrails — PII detection, content filtering, maybe sentiment analysis — run alongside everything because responsible AI isn&rsquo;t optional. It&rsquo;s all <code>async def</code>. It&rsquo;s all <code>await</code>ed properly. The demo sounds great.</p>
+<p>Python&rsquo;s async model feels like it was built for this. Non-blocking I/O, coroutines, event-driven architecture. You&rsquo;ve got ML inference, LLM calls, NLP guardrails, and audio streaming all sharing the same event loop, and it maps cleanly onto a streaming voice pipeline.</p>
+<p>Then you go to production with real concurrent call volume and the audio quality falls apart. Not immediately, and not on every call — but enough that it&rsquo;s a problem.</p>
+<p>What follows are the specific issues I&rsquo;ve tracked down, the code that caused them, and the fixes that brought audio quality back to where it needed to be.</p>
+<hr>
+<h2 id="but-i-thought-it-was-async">&ldquo;But I Thought It Was Async&rdquo;</h2>
+<p>This one cost me real debugging time and it&rsquo;s the most important concept in this entire post: <code>async def</code> does not mean non-blocking. It&rsquo;s a contract that Python does not enforce.</p>
+<h3 id="the-pii-guardrail-that-killed-audio-quality">The PII Guardrail That Killed Audio Quality</h3>
+<p>We have an inline guardrail that runs NLP analysis for PII detection on every transcript chunk. It&rsquo;s a compliance requirement — you can&rsquo;t skip it. The method is <code>async def</code>. It&rsquo;s being <code>await</code>ed correctly. Everything looks right.</p>
+<p>But the NLP inference inside that method is CPU-bound. It&rsquo;s doing regex matching and model inference on every chunk of transcribed text. It never yields back to the event loop because there&rsquo;s nothing to yield <em>to</em> — it&rsquo;s doing computation, not I/O. Meanwhile, the audio frames that need to ship on a 20ms cadence are sitting in a queue, waiting for the event loop to come back around to them.</p>
+<p>The guardrail runs, returns <code>True</code> — no PII detected, everything&rsquo;s fine — and in the 80-200ms it took to reach that conclusion, the caller heard dead air where smooth audio should have been.</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># BEFORE: Looks async. Isn&#39;t.</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">async</span> <span style="color:#ff7b72">def</span> <span style="color:#d2a8ff;font-weight:bold">check_pii</span>(self, transcript_chunk: str) <span style="color:#ff7b72;font-weight:bold">-&gt;</span> bool:
+</span></span><span style="display:flex;"><span>    <span style="color:#8b949e;font-style:italic"># All CPU-bound work. No awaits, no yields.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b949e;font-style:italic"># The event loop is frozen while this executes.</span>
+</span></span><span style="display:flex;"><span>    patterns <span style="color:#ff7b72;font-weight:bold">=</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_compile_patterns()
+</span></span><span style="display:flex;"><span>    matches <span style="color:#ff7b72;font-weight:bold">=</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_scan_patterns(transcript_chunk, patterns)
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">if</span> matches:
+</span></span><span style="display:flex;"><span>        <span style="color:#ff7b72">return</span> <span style="color:#79c0ff">True</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b949e;font-style:italic"># NLP model inference — the expensive part</span>
+</span></span><span style="display:flex;"><span>    result <span style="color:#ff7b72;font-weight:bold">=</span> self<span style="color:#ff7b72;font-weight:bold">.</span>nlp_model<span style="color:#ff7b72;font-weight:bold">.</span>predict(transcript_chunk)
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span> result<span style="color:#ff7b72;font-weight:bold">.</span>contains_pii
+</span></span></code></pre></div><p>The mental model most Python developers carry is: &ldquo;I used <code>await</code>, so it&rsquo;s non-blocking.&rdquo; But <code>await</code> only yields control if the called coroutine actually <em>suspends</em> — meaning it hits a real I/O wait or an explicit yield point. An <code>async def</code> that does CPU work without any suspension points is functionally synchronous. Python won&rsquo;t stop you from writing it. Python won&rsquo;t warn you. The only thing that tells you something is wrong is the audio quality.</p>
+<p>The important constraint here: you can&rsquo;t remove the guardrail. It&rsquo;s compliance. You can&rsquo;t make the NLP inference faster — it takes what it takes. The fix is getting it off the audio hot path entirely:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># AFTER: Actually non-blocking. CPU work moves to a thread.</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">async</span> <span style="color:#ff7b72">def</span> <span style="color:#d2a8ff;font-weight:bold">check_pii</span>(self, transcript_chunk: str) <span style="color:#ff7b72;font-weight:bold">-&gt;</span> bool:
+</span></span><span style="display:flex;"><span>    result <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#ff7b72">await</span> asyncio<span style="color:#ff7b72;font-weight:bold">.</span>to_thread(self<span style="color:#ff7b72;font-weight:bold">.</span>_detect_pii_sync, transcript_chunk)
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span> result
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">def</span> <span style="color:#d2a8ff;font-weight:bold">_detect_pii_sync</span>(self, text: str) <span style="color:#ff7b72;font-weight:bold">-&gt;</span> bool:
+</span></span><span style="display:flex;"><span>    <span style="color:#a5d6ff">&#34;&#34;&#34;Runs in a thread pool, not on the event loop.&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    patterns <span style="color:#ff7b72;font-weight:bold">=</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_compile_patterns()
+</span></span><span style="display:flex;"><span>    matches <span style="color:#ff7b72;font-weight:bold">=</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_scan_patterns(text, patterns)
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">if</span> matches:
+</span></span><span style="display:flex;"><span>        <span style="color:#ff7b72">return</span> <span style="color:#79c0ff">True</span>
+</span></span><span style="display:flex;"><span>    result <span style="color:#ff7b72;font-weight:bold">=</span> self<span style="color:#ff7b72;font-weight:bold">.</span>nlp_model<span style="color:#ff7b72;font-weight:bold">.</span>predict(text)
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span> result<span style="color:#ff7b72;font-weight:bold">.</span>contains_pii
+</span></span></code></pre></div><p><code>asyncio.to_thread()</code> moves the CPU-bound work to a thread and yields control back to the event loop immediately. The PII check still runs. Compliance is still met. But the event loop is free to keep shipping audio frames while the NLP model does its work in the background.</p>
+<p>One line changed the call signature. The caller stopped hearing gaps.</p>
+<p>What makes this worth writing about is the irony: the guardrail protecting the user experience was the thing degrading it. In a typical web application, 80-200ms of CPU work means a slightly slower HTTP response. Nobody notices. In a streaming audio pipeline, it means the event loop can&rsquo;t service the coroutines responsible for sending audio frames on time, and the caller hears it.</p>
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/19egnk4nc97rqxr1ro06.png" alt="Image description"></p>
+<hr>
+<h2 id="your-logger-is-in-the-hot-path">Your Logger Is in the Hot Path</h2>
+<p>This one is subtle enough that I think most Python developers don&rsquo;t know about it.</p>
+<p>Python&rsquo;s standard <code>logging</code> module uses <code>StreamHandler</code> by default. Here&rsquo;s what actually happens every time you call <code>logger.info()</code>:</p>
+<ol>
+<li><code>StreamHandler.emit()</code> acquires a threading lock — <code>self.lock.acquire()</code></li>
+<li>It calls <code>self.stream.write()</code> — a blocking I/O operation</li>
+<li>Even writing to stdout is blocking in CPython</li>
+</ol>
+<p>That&rsquo;s a lock acquisition plus a synchronous write on every log call. In a web server, this is noise — your response already takes 50-200ms, and a few microseconds of lock contention doesn&rsquo;t register. On an audio hot path where frames need to ship every 20ms, you&rsquo;ve added synchronous I/O to the critical timing loop.</p>
+<p>During development you add <code>logger.debug()</code> throughout the audio path because you need visibility into what&rsquo;s happening. Reasonable. But every one of those calls is synchronous I/O that can introduce jitter. In a REST API, it doesn&rsquo;t matter. In a streaming audio pipeline, it does.</p>
+<p>Logging isn&rsquo;t the only thing hiding in plain sight either. On the audio hot path, nothing is safe to assume is free:</p>
+<ul>
+<li><strong><code>json.dumps()</code> / <code>json.loads()</code></strong> on large payloads — CPU-bound, holds the GIL the entire time</li>
+<li><strong>DNS resolution inside aiohttp</strong> — can block if the system resolver is slow</li>
+<li><strong>File I/O that looks async but isn&rsquo;t</strong> — many &ldquo;async&rdquo; wrappers delegate to a thread pool, and if that pool is saturated, you wait</li>
+<li><strong>Python&rsquo;s string interpolation with file reads</strong> — we hit this one loading AI tool definitions dynamically in our orchestration package. Trying to be clever about caching actually introduced synchronous file I/O on a path that needed to be fast</li>
+</ul>
+<p>The fix is two-fold:</p>
+<p><strong>First, audit your log levels.</strong> Production doesn&rsquo;t need <code>DEBUG</code> on the hot path. You&rsquo;d be surprised how many <code>logger.debug()</code> calls survive into production with a permissive log level config. Remove what you don&rsquo;t need, bump the rest to levels that won&rsquo;t fire in production. This is free.</p>
+<p><strong>Second, replace <code>StreamHandler</code> with <code>QueueHandler</code>:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">import</span> <span style="color:#ff7b72">logging</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">from</span> <span style="color:#ff7b72">logging.handlers</span> <span style="color:#ff7b72">import</span> QueueHandler, QueueListener
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">from</span> <span style="color:#ff7b72">queue</span> <span style="color:#ff7b72">import</span> Queue
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>log_queue <span style="color:#ff7b72;font-weight:bold">=</span> Queue()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># Drops log records into the queue and returns immediately</span>
+</span></span><span style="display:flex;"><span>queue_handler <span style="color:#ff7b72;font-weight:bold">=</span> QueueHandler(log_queue)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># Separate thread drains the queue and writes at its own pace</span>
+</span></span><span style="display:flex;"><span>stream_handler <span style="color:#ff7b72;font-weight:bold">=</span> logging<span style="color:#ff7b72;font-weight:bold">.</span>StreamHandler()
+</span></span><span style="display:flex;"><span>listener <span style="color:#ff7b72;font-weight:bold">=</span> QueueListener(log_queue, stream_handler)
+</span></span><span style="display:flex;"><span>listener<span style="color:#ff7b72;font-weight:bold">.</span>start()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>logger <span style="color:#ff7b72;font-weight:bold">=</span> logging<span style="color:#ff7b72;font-weight:bold">.</span>getLogger(<span style="color:#a5d6ff">&#34;voice_pipeline&#34;</span>)
+</span></span><span style="display:flex;"><span>logger<span style="color:#ff7b72;font-weight:bold">.</span>addHandler(queue_handler)
+</span></span><span style="display:flex;"><span>logger<span style="color:#ff7b72;font-weight:bold">.</span>setLevel(logging<span style="color:#ff7b72;font-weight:bold">.</span>INFO)
+</span></span></code></pre></div><p><code>QueueHandler</code> drops the log record into an in-memory queue and returns immediately. A <code>QueueListener</code> on a separate thread drains the queue at its own pace. The hot path never blocks on I/O. The log still gets written — just not synchronously.</p>
+<p>Neither of these fixes requires rearchitecting anything. Together they remove synchronous I/O from every frame of your audio pipeline.</p>
+<hr>
+<h2 id="the-gil-doesnt-care-about-your-deadlines">The GIL Doesn&rsquo;t Care About Your Deadlines</h2>
+<p>Even if you get your async discipline perfect — every CPU-bound operation offloaded to a thread, every logger swapped, every stdlib call audited — the GIL is still there.</p>
+<p>The Global Interpreter Lock means only one thread executes Python bytecode at a time. Most Python concurrency advice hand-waves past this because for web workloads it genuinely doesn&rsquo;t matter much. Threads spend most of their time waiting on I/O, the GIL is released during I/O waits, and everyone gets a turn.</p>
+<p>Real-time audio is different. You have CPU-bound work happening in threads (we just moved PII detection to a thread). You have the event loop on the main thread scheduling audio frame callbacks. The GIL means these take turns, not run in parallel. When the PII thread is holding the GIL for NLP inference, the event loop thread can&rsquo;t run. When the event loop can&rsquo;t run, audio frames don&rsquo;t ship.</p>
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/swkfzvt7mvt5upv10rs2.png" alt="Image description"></p>
+<p>What this looks like in production:</p>
+<ul>
+<li>Latency spikes that only appear under load — one concurrent call is fine, fifty and you see jitter</li>
+<li>Symptoms look identical to network jitter in your metrics, but it&rsquo;s scheduling contention inside your own process</li>
+<li>Doesn&rsquo;t reproduce locally because your dev machine isn&rsquo;t running fifty concurrent sessions</li>
+<li>The p50 and p99 look acceptable. The p99.9 is bad. And in voice, the p99.9 is what callers remember</li>
+</ul>
+<p>The honest answer is that the GIL makes Python fundamentally limited for work where sub-millisecond scheduling guarantees matter. But &ldquo;rewrite it in Rust&rdquo; isn&rsquo;t practical for most teams, and the rest of the stack — orchestration, LLM integration, business logic — is genuinely well-served by Python. The practical approach is knowing the constraint exists and designing around it.</p>
+<h3 id="free-threaded-python-the-light-at-the-end-of-the-tunnel">Free-Threaded Python: The Light at the End of the Tunnel</h3>
+<p>Python is finally making the GIL optional. PEP 703 introduced a free-threaded build, and as of Python 3.14 it&rsquo;s officially supported — though still opt-in, not the default.</p>
+<p>In practice: you can build CPython with <code>--disable-gil</code> and get true multi-threaded parallelism. The PII detection thread could run in parallel with the event loop thread instead of taking turns. Several items on the fix hierarchy below could potentially collapse.</p>
+<p>The caveats are real though. The ecosystem is still catching up — C extensions that assumed the GIL would protect shared state may not be thread-safe without it. Libraries that haven&rsquo;t been updated may re-enable the GIL automatically. And race conditions that the GIL was silently preventing will surface the moment you remove it.</p>
+<p>For real-time audio, this is genuinely promising. But it&rsquo;s a migration measured in years, not a weekend upgrade. Your STT clients, TTS clients, LLM SDKs, and orchestration frameworks all need to support it before you can flip the switch in production. Worth tracking closely and something I look for experimenting with.</p>
+<hr>
+<h2 id="just-use-threads--the-trap">&ldquo;Just Use Threads&rdquo; — The Trap</h2>
+<p>At this point the instinct is obvious: <code>ThreadPoolExecutor</code> is right there, move everything off the event loop.</p>
+<p>Sometimes that&rsquo;s the right call — <code>asyncio.to_thread()</code> fixed the PII guardrail cleanly. But &ldquo;just use threads&rdquo; as a general strategy is a trap:</p>
+<p><strong>Shared state becomes a problem.</strong> Audio pipelines have state — playback buffers, conversation context, agent state, connection metadata. Threading means reasoning about what&rsquo;s shared. Race conditions in audio manifest as once-in-a-thousand glitches: a frame sent out of order, a buffer read during a write, piping audio into a different user&rsquo;s websocket, a state update that arrives late. Nearly impossible to reproduce in testing.</p>
+<p><strong>Thread safety overhead can reintroduce latency.</strong> Locks fix shared state problems but introduce contention, which reintroduces the timing issues you were trying to solve.</p>
+<p><strong>The GIL means threads aren&rsquo;t truly parallel</strong> for CPU-bound work anyway. You&rsquo;ve added complexity without gaining real concurrency where it matters most.</p>
+<h3 id="what-actually-works">What Actually Works</h3>
+<p>When I find something blocking the audio hot path, my first questions are about the product, not the code:</p>
+<p><strong>&ldquo;Do we need this on the hot path at all?&rdquo;</strong> This is the question that junior engineers skip. They go straight to &ldquo;how do I make this faster&rdquo; when the answer is often &ldquo;don&rsquo;t do it here.&rdquo; Can this work happen after the audio frame ships? Before the call starts? Does it need to run on every chunk, or can it batch?</p>
+<p><strong>&ldquo;Where else can I put it?&rdquo;</strong> If it needs to happen during the call, can it move to a background task without breaking anything? Often the answer is yes.</p>
+<p><strong>&ldquo;If I have to move it, who do I talk to about feature parity?&rdquo;</strong> Sometimes moving work off the hot path changes how a feature behaves. That&rsquo;s a product conversation, not just an engineering one.</p>
+<p>Then the technical options, in order of preference:</p>
+<ol>
+<li><strong>Background tasks</strong> — fire-and-forget with <code>asyncio.create_task()</code> if you don&rsquo;t need the result immediately. Lowest cost.</li>
+<li><strong>Threads</strong> — <code>asyncio.to_thread()</code> for isolated CPU work like the PII guardrail. Keep the surface area small.</li>
+<li><strong>Multiprocessing</strong> — escapes the GIL, but IPC overhead adds its own latency. Worth it for heavy, long-running work.</li>
+<li><strong>Separate process</strong> — full isolation. Hot path and heavy processing don&rsquo;t share a GIL or memory. Real architectural cost, but real isolation guarantees.</li>
+<li><strong>Event loop inversion</strong> — give the audio hot path its own dedicated event loop. Nothing else runs on it, so nothing can starve it. This is the nuclear option.</li>
+</ol>
+<p>The right choice depends on how close the work is to the audio stream. A guardrail that doesn&rsquo;t gate playback? Background task. Audio pacing logic that controls frame timing? Might need its own event loop.</p>
+<hr>
+<h2 id="the-free-lunch-uvloop">The Free Lunch: uvloop</h2>
+<p>After all of the above, here&rsquo;s something you can do in five minutes that actually helps.</p>
+<p><a href="https://github.com/MagicStack/uvloop">uvloop</a> is a drop-in replacement for asyncio&rsquo;s event loop, written in Cython on top of libuv — the same library that powers Node.js. It&rsquo;s faster at everything the event loop does: iterating, dispatching callbacks, resolving timers, handling I/O.</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">import</span> <span style="color:#ff7b72">uvloop</span>
+</span></span><span style="display:flex;"><span>uvloop<span style="color:#ff7b72;font-weight:bold">.</span>install()
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># That&#39;s it.</span>
+</span></span></code></pre></div><p>In a real-time audio pipeline where the event loop drives frame timing, faster iteration means tighter scheduling means smoother audio. With the default asyncio event loop, I was seeing event loop congestion of 10 ms - 3 seconds. Meaning, the event loop was stuck for that long, unable to do anything else. After switching to uvloop, that number stayed down to single digit ms. Still some congestion, but much better than waiting 2 seconds for the event loop to run the next scheduled operation.</p>
+<p>What it doesn&rsquo;t fix: the GIL, blocking code, CPU-bound coroutines that starve the loop. Every problem from the previous sections still applies. uvloop makes a healthy event loop faster — it can&rsquo;t fix a broken one.</p>
+<p>But after spending hours tracking down blocking calls and refactoring thread strategies, a one-line change that measurably improves scheduling is a nice win.</p>
+<hr>
+<h2 id="the-takeaway">The Takeaway</h2>
+<p>Python is the right language for building voice AI systems. The orchestration, the LLM integration, the business logic, the rapid prototyping — the ecosystem is unmatched - though TypeScript is becoming more and more robust AI ecosystem by the day.</p>
+<p>But the audio hot path operates under timing constraints that Python&rsquo;s async model wasn&rsquo;t designed for. The issues I&rsquo;ve described here aren&rsquo;t Python bugs — they&rsquo;re assumption gaps. Assumptions that <code>async def</code> means non-blocking, that the stdlib is fast enough to be invisible, that the GIL only matters for batch processing, that threads give you parallelism.</p>
+<p>Every one of those assumptions is reasonable in the context of a web application. Every one of them will degrade your production audio quality in a voice AI pipeline.</p>
+<p>The fix isn&rsquo;t rewriting everything in Rust/C++ or abandoning Python. It&rsquo;s knowing where the constraints are, designing around them, keeping CPU-bound work off the path where milliseconds are audible, and architecting your system with these constraints in mind.</p>
+<p>More on that in the next blog post: The Audio Gateway.</p>
+<hr>
+<p><em>This is part of a series on building production voice AI systems. Previously: <a href="/writing/local-vad/">Dude, Where&rsquo;s My Response? Cutting 700ms from Every Voice AI Turn with Local VAD</a> | <a href="/writing/responder-thinker/">Your Voice Agent Needs Two Brains: Building Multi-Thinker on OpenAI&rsquo;s Realtime API</a> | <a href="/writing/websockets-vs-webrtc/">I Tested Our WebSocket Audio Pipeline with WebRTC. Here&rsquo;s Why I Switched It Back.</a></em></p>
+
+      </div>
+      <footer class="article-footer">
+        <ul class="tag-list" aria-label="Tags"><li><a href="/tags/python/">Python</a></li><li><a href="/tags/latency/">Latency</a></li><li><a href="/tags/voice-ai/">Voice-Ai</a></li></ul>
+        <p class="article-byline">Written by Nick Lackman, who builds agent platforms and real-time voice systems. <a href="/">More about me</a> · <a href="/writing/">More writing</a></p>
+      </footer>
+    </article>
+
+  </main>
+    <footer class="footer"><div class="shell footer-inner">
+    <p>Nick Lackman <span>Staff Software Engineer · Seattle area</span></p>
+    <div class="footer-links">
+      <a href="/writing/">Writing <span aria-hidden="true">↗</span></a>
+      <a href="/writing/index.xml">RSS <span aria-hidden="true">↗</span></a>
+      <a href="mailto:nick@lackman.dev">Email <span aria-hidden="true">↗</span></a>
+      <a href="https://www.linkedin.com/in/lackmannicholas">LinkedIn <span aria-hidden="true">↗</span></a>
+      <a href="https://github.com/lackmannicholas">GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </div></footer>
+
+  <script>
+
+const links = Array.from(document.querySelectorAll('nav a')).filter(a => a.pathname === location.pathname && a.hash);
+const sections = links.map(a => document.querySelector(a.hash)).filter(Boolean);
+if (sections.length && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      for (const a of links) {
+        if (a.hash === '#' + entry.target.id) a.setAttribute('aria-current', 'location');
+        else a.removeAttribute('aria-current');
+      }
+    }
+  }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+}
+  </script>
+</body>
+</html>

@@ -10,15 +10,43 @@
 		
 		
 		
-			<lastBuildDate>Thu, 24 Sep 2026 00:00:00 +0000</lastBuildDate>
+			<lastBuildDate>Thu, 16 Jul 2026 22:30:48 +0000</lastBuildDate>
 		
 			<atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
 			<item>
-				<title>Your `async def` is lying to you</title>
-				<link>http://localhost:1313/writing/async-def-is-lying-to-you/</link>
-				<pubDate>Thu, 24 Sep 2026 00:00:00 +0000</pubDate>
-				<guid>http://localhost:1313/writing/async-def-is-lying-to-you/</guid>
-				<description>&lt;p&gt;TODO: open with the symptom: latency on the voice path that no single span explained.&lt;/p&gt;&#xA;&lt;h2 id=&#34;the-symptom&#34;&gt;The symptom&lt;/h2&gt;&#xA;&lt;p&gt;TODO: what the traces showed, and why the event loop didn&amp;rsquo;t look busy.&lt;/p&gt;&#xA;&lt;h2 id=&#34;what-async-def-does-and-doesnt-promise&#34;&gt;What &lt;code&gt;async def&lt;/code&gt; does and doesn&amp;rsquo;t promise&lt;/h2&gt;&#xA;&lt;p&gt;An &lt;code&gt;async def&lt;/code&gt; only yields at an &lt;code&gt;await&lt;/code&gt;. Anything synchronous inside it holds the event loop, and every other coroutine waits:&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff7b72&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#ff7b72&#34;&gt;asyncio&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff7b72&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#ff7b72&#34;&gt;time&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff7b72&#34;&gt;async&lt;/span&gt; &lt;span style=&#34;color:#ff7b72&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#d2a8ff;font-weight:bold&#34;&gt;handle_turn&lt;/span&gt;():&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    time&lt;span style=&#34;color:#ff7b72;font-weight:bold&#34;&gt;.&lt;/span&gt;sleep(&lt;span style=&#34;color:#a5d6ff&#34;&gt;0.2&lt;/span&gt;)            &lt;span style=&#34;color:#8b949e;font-style:italic&#34;&gt;# blocks the whole event loop&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff7b72&#34;&gt;await&lt;/span&gt; asyncio&lt;span style=&#34;color:#ff7b72;font-weight:bold&#34;&gt;.&lt;/span&gt;sleep(&lt;span style=&#34;color:#a5d6ff&#34;&gt;0.2&lt;/span&gt;)   &lt;span style=&#34;color:#8b949e;font-style:italic&#34;&gt;# yields; other calls keep flowing&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;TODO: the less obvious offenders you found (sync SDK calls, CPU-bound audio work, logging, JSON on large payloads).&lt;/p&gt;</description>
+				<title>The Audio Gateway: The Production Pattern for Real-Time Voice AI</title>
+				<link>http://localhost:1313/writing/the-audio-gateway/</link>
+				<pubDate>Thu, 16 Jul 2026 22:30:48 +0000</pubDate>
+				<guid>http://localhost:1313/writing/the-audio-gateway/</guid>
+				<description>&lt;p&gt;If your voice agent stutters under load, talks over callers, or freezes mid-sentence while a tool call runs — the fix probably isn&amp;rsquo;t a better model. It&amp;rsquo;s an architectural split.&lt;/p&gt;&#xA;&lt;p&gt;In my last post, &lt;a href=&#34;http://localhost:1313/writing/python-is-lying-to-you/&#34;&gt;Python Is Lying to You&lt;/a&gt;, I walked through every way Python&amp;rsquo;s async model quietly sabotages a real-time audio pipeline: the async-looking guardrail that froze the event loop, the logger doing blocking I/O on every frame, GIL contention that looks exactly like network jitter. The fixes worked. But they are all &lt;em&gt;defensive&lt;/em&gt;. Move this off the hot path. Offload that to a thread. Audit every innocent-looking call. You&amp;rsquo;re playing whack-a-mole against your own process.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>Python Is Lying to You: Async Pitfalls in Real-Time Audio Pipelines</title>
+				<link>http://localhost:1313/writing/python-is-lying-to-you/</link>
+				<pubDate>Fri, 12 Jun 2026 04:14:07 +0000</pubDate>
+				<guid>http://localhost:1313/writing/python-is-lying-to-you/</guid>
+				<description>&lt;p&gt;If you&amp;rsquo;re building voice AI with async Python, your audio quality is probably worse than it needs to be — and the bottleneck isn&amp;rsquo;t where you think it is.&lt;/p&gt;&#xA;&lt;p&gt;I&amp;rsquo;ve spent the last two years building production voice AI systems — real-time pipelines handling thousands of calls per day over PSTN telephony. The stack is what you&amp;rsquo;d expect: STT, LLM reasoning, TTS, Speech-to-Speech, guardrails, tool calls, all wired together with async Python and streaming over websockets.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>Voice AI: Fast and Dumb or Slow and Smart — Why Not Fast and Smart?</title>
+				<link>http://localhost:1313/writing/responder-thinker/</link>
+				<pubDate>Mon, 06 Apr 2026 23:26:29 +0000</pubDate>
+				<guid>http://localhost:1313/writing/responder-thinker/</guid>
+				<description>&lt;p&gt;Many voice AI demos connect the browser directly to a real-time audio model API and lets the server decide when you&amp;rsquo;ve stopped talking. That&amp;rsquo;s a demo architecture with a built-in latency tax that quickly breaks down in production. Here&amp;rsquo;s the production alternative: a backend-mediated, multi-thinker voice system with local voice activity detection that owns the entire audio pipeline end-to-end.&lt;/p&gt;&#xA;&lt;p&gt;I spent the last year and half building production voice AI systems that handle thousands of calls per day. This post covers the architecture I wish someone had documented when I started: how to make your voice AI product fast and smart, what the Responder-Thinker pattern is, why single-thinker breaks, how to build multi-thinker with your backend in the middle, and why local VAD is the key to making it feel instant.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>Dude, Where&#39;s My Response? Cutting 600ms from Every Voice AI Turn with Local VAD</title>
+				<link>http://localhost:1313/writing/local-vad/</link>
+				<pubDate>Sat, 21 Mar 2026 02:45:02 +0000</pubDate>
+				<guid>http://localhost:1313/writing/local-vad/</guid>
+				<description>&lt;p&gt;If you&amp;rsquo;re building voice AI on OpenAI&amp;rsquo;s Realtime API, your agent is slower than it needs to be — the main bottleneck is certainly inference but there&amp;rsquo;s additional overhead to cut.&lt;/p&gt;&#xA;&lt;p&gt;I spent the past week instrumenting a production telephony voice pipeline, measuring where latency actually lives, and testing whether local voice activity detection (VAD) could meaningfully reduce response time. The answer is yes — by &lt;strong&gt;689ms per turn on substantive responses&lt;/strong&gt; — and the methodology is cleaner than I expected.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>I Tested Our WebSocket Audio Pipeline with WebRTC. Here&#39;s Why I Switched It Back.</title>
+				<link>http://localhost:1313/writing/websockets-vs-webrtc/</link>
+				<pubDate>Wed, 11 Mar 2026 04:01:01 +0000</pubDate>
+				<guid>http://localhost:1313/writing/websockets-vs-webrtc/</guid>
+				<description>&lt;p&gt;There&amp;rsquo;s a prevailing assumption in the voice AI space that WebRTC is inherently better than WebSockets for real-time audio. Better latency, better quality, better everything. I built a full proof-of-concept to test that assumption on an enterprise scale production AI voice system.&lt;/p&gt;&#xA;&lt;p&gt;I found a few things surprising.&lt;/p&gt;&#xA;&lt;h2 id=&#34;the-setup&#34;&gt;The Setup&lt;/h2&gt;&#xA;&lt;p&gt;Our system takes inbound phone calls, pipes the audio through an AI agent (OpenAI Realtime API), and sends the response back to the caller. The current architecture uses Twilio Programmable Voice with WebSocket media streams — G.711 μ-law audio at 8kHz using WebSocket protocol.&lt;/p&gt;</description>
 			</item>
 	</channel>
 </rss>

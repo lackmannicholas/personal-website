@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111312">
+  <title>Voice AI: Fast and Dumb or Slow and Smart — Why Not Fast and Smart? — Nick Lackman</title>
+  <meta name="description" content="The Responder-Thinker pattern for production voice AI: a realtime model that stays present, specialist thinkers that get it right, backend mediation, and local VAD.">
+  <meta name="author" content="Nick Lackman">
+  <link rel="canonical" href="http://localhost:1313/writing/responder-thinker/">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://localhost:1313/writing/responder-thinker/">
+  <meta property="og:title" content="Voice AI: Fast and Dumb or Slow and Smart — Why Not Fast and Smart? — Nick Lackman">
+  <meta property="og:description" content="The Responder-Thinker pattern for production voice AI: a realtime model that stays present, specialist thinkers that get it right, backend mediation, and local VAD.">
+  <meta property="og:site_name" content="Nick Lackman">
+  <meta name="twitter:card" content="summary">
+  <link rel="alternate" type="application/rss+xml" href="http://localhost:1313/writing/index.xml" title="Nick Lackman — Writing">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111312'/%3E%3Cpath d='M8 24V8h4l8 11V8h4v16h-4L12 13v11Z' fill='%23fa625c'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/site.css">
+  <meta property="article:published_time" content="2026-04-06T23:26:29Z">
+  <meta property="article:modified_time" content="2026-04-06T23:26:29Z">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Nick Lackman","url":"http://localhost:1313/"},"dateModified":"2026-04-06","datePublished":"2026-04-06","description":"The Responder-Thinker pattern for production voice AI: a realtime model that stays present, specialist thinkers that get it right, backend mediation, and local VAD.","headline":"Voice AI: Fast and Dumb or Slow and Smart — Why Not Fast and Smart?","url":"http://localhost:1313/writing/responder-thinker/"}
+  </script>
+
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+    <header class="header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="Nick Lackman, home"><span class="monogram" aria-hidden="true">NL<span>.</span></span><span class="brand-name">Nick Lackman</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/#work">Work</a>
+        <a href="/writing/" aria-current="page">Writing</a>
+        <a href="/#experience">Experience</a>
+        <a href="/#contact">Contact <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <article class="shell article" aria-labelledby="article-title">
+      <header class="article-header">
+        <p class="eyebrow"><a href="/writing/">Writing</a> · <time datetime="2026-04-06">April 6, 2026</time> · 12 min read</p>
+        <h1 id="article-title">Voice AI: Fast and Dumb or Slow and Smart — Why Not Fast and Smart?</h1><p class="article-dek">The Responder-Thinker pattern for production voice AI: a realtime model that stays present, specialist thinkers that get it right, backend mediation, and local VAD.</p>
+      </header>
+      <div class="prose">
+<p>Many voice AI demos connect the browser directly to a real-time audio model API and lets the server decide when you&rsquo;ve stopped talking. That&rsquo;s a demo architecture with a built-in latency tax that quickly breaks down in production. Here&rsquo;s the production alternative: a backend-mediated, multi-thinker voice system with local voice activity detection that owns the entire audio pipeline end-to-end.</p>
+<p>I spent the last year and half building production voice AI systems that handle thousands of calls per day. This post covers the architecture I wish someone had documented when I started: how to make your voice AI product fast and smart, what the Responder-Thinker pattern is, why single-thinker breaks, how to build multi-thinker with your backend in the middle, and why local VAD is the key to making it feel instant.</p>
+<p>The companion repo is fully functional — clone it, run it, talk to it (OpenAI API Key Required): <a href="https://github.com/lackmannicholas/responder-thinker">github.com/lackmannicholas/responder-thinker</a></p>
+<hr>
+<h2 id="the-latency-budget-you-cant-meet">The Latency Budget You Can&rsquo;t Meet</h2>
+<p>Before the Realtime API existed, voice AI meant chaining three models in series: speech-to-text, an LLM, then text-to-speech. The math doesn&rsquo;t work.</p>
+<p>STT endpointing and recognition eats 500-1000ms. The LLM&rsquo;s time-to-first-token adds another 500-1500ms. TTS synthesis takes 200-500ms. You&rsquo;re at <strong>1.2-3 seconds minimum</strong> before the caller hears a single syllable — and conversational turn-taking breaks down around 800ms of silence.</p>
+<p>In <a href="/writing/local-vad/">my previous post</a>, I showed that server-side voice activity detection alone adds 500ms+ of unnecessary overhead to every turn. But even after fixing that, the serial pipeline architecture is the bottleneck. You can&rsquo;t engineer your way to natural conversation speed with a pipeline. The architecture has to change.</p>
+<h2 id="the-realtime-api-fast-but-not-smart-enough">The Realtime API: Fast, But Not Smart Enough</h2>
+<p>OpenAI&rsquo;s Realtime API collapses the STT → LLM → TTS pipeline into a single api call. Latency drops to sub-second. The conversation finally feels naturalish.</p>
+<p>But there&rsquo;s a tradeoff. The realtime model is conversational and fast, but compared to text-based models like GPT-5.4, it struggles with complex multi-step instructions, structured tool use, and domain-specific accuracy. It hallucinates more. Its instruction-following degrades as the system prompt grows.</p>
+<p>A voice agent that responds instantly but gives wrong information is worse than one that takes two seconds and gets it right. <strong>The Realtime API solved the latency problem and created an intelligence problem.</strong></p>
+<h2 id="enter-responder-thinker">Enter Responder-Thinker</h2>
+<p>The Responder-Thinker pattern resolves this by splitting responsibilities:</p>
+<p>The <strong>Responder</strong> (Realtime API) is &ldquo;always on&rdquo;. It handles conversational flow — greetings, acknowledgments, stalling, turn-taking. It&rsquo;s fast and socially intelligent. When the user asks something that needs real data or complex reasoning, the Responder classifies the intent and hands off to a Thinker.</p>
+<p>The <strong>Thinker</strong> (text-based model) runs in the background. It has a focused system prompt, domain-specific tools, and the reasoning capability to get the answer right. When it&rsquo;s done, the result is injected back into the Realtime API conversation, and the Responder delivers it naturally.</p>
+<p>The insight: <strong>you don&rsquo;t need your real-time voice to be smart. You need it to be <em>present</em> while the smart thing works in the background.</strong></p>
+<p>This pattern comes from OpenAI — their <a href="https://github.com/openai/openai-realtime-agents">openai-realtime-agents</a> repo calls it &ldquo;Chat-Supervisor.&rdquo; The concept isn&rsquo;t new. Making it production-grade is the hard part.</p>
+<h2 id="why-single-thinker-breaks">Why Single-Thinker Breaks</h2>
+<p>The simplest implementation has one generalist Thinker handling everything — weather, stocks, news, FAQ, escalation. In my experience, this breaks fast.</p>
+<p>The system prompt grows to accommodate every domain, and quality degrades across all of them. A weather lookup and a complex knowledge question go through the same agent with the same overhead. You can&rsquo;t tune one domain without risking regressions in the others. You can&rsquo;t use a cheaper model for simple lookups and a smarter model for hard reasoning — it&rsquo;s one model for everything. You have to vertically scale the model capability based on the your most complex task. Lighter tasks are &ldquo;over-provisioned&rdquo; in terms of model usage.</p>
+<p><strong>Single-thinker is a monolith. Multi-thinker is microservices.</strong> The voice AI industry is learning the same architectural lessons backend engineering learned fifteen years ago.</p>
+<p>In a multi-thinker architecture, each Thinker owns a domain with a focused prompt and its own tools. Weather uses <code>gpt-5.4-mini</code> with a live weather API. News uses <code>gpt-5.4</code> because summarization requires more reasoning. Each can be tested, cached, and optimized independently.</p>
+<h2 id="the-realistic-production-architecture">The Realistic Production Architecture</h2>
+<p>Here&rsquo;s where this implementation diverges from most tutorials you&rsquo;ll find.</p>
+<p>Many demos connect the browser directly to OpenAI&rsquo;s Realtime API via WebRTC. The browser gets an ephemeral token, establishes a peer connection, and audio flows between the user and OpenAI with nothing in between. <strong>It&rsquo;s not how production voice systems work.</strong></p>
+<p>In production — Twilio, SIP trunks, contact centers — audio always flows through your backend. This architecture puts your backend in the middle:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-plaintext" data-lang="plaintext"><span style="display:flex;"><span>Browser ←—WebRTC—→ Python Backend ←—WebSocket—→ OpenAI Realtime API
+</span></span><span style="display:flex;"><span>                        │
+</span></span><span style="display:flex;"><span>                   Thinker Agents
+</span></span></code></pre></div><p>The browser connects to a FastAPI server via WebRTC (using <a href="https://github.com/aiortc/aiortc">aiortc</a> for server-side WebRTC). The backend opens a WebSocket to OpenAI&rsquo;s Realtime API and streams audio bidirectionally, resampling between 48kHz (WebRTC) and 24kHz (Realtime API) using <code>libswresample</code> for proper anti-aliased conversion.</p>
+<p>What this gives you that direct connection doesn&rsquo;t:</p>
+<ul>
+<li><strong>Interception</strong>: the backend sees every event between the user and the model. Tool calls route to your server-side agents, not browser JavaScript. This is important for conservation aggregation, metrics, and downstream analytics</li>
+<li><strong>State management</strong>: Redis-backed conversation history, cross-session user memory, per-domain result caching.</li>
+<li><strong>Local VAD</strong>: your backend owns turn detection, not OpenAI&rsquo;s servers. This is where hundreds of milliseconds live.</li>
+<li><strong>Security</strong>: API keys never touch the browser.</li>
+<li><strong>Transport flexibility</strong>: the same backend works for WebRTC browsers and telephony SIP trunks.</li>
+</ul>
+<h2 id="local-vad-owning-turn-detection-end-to-end">Local VAD: Owning Turn Detection End-to-End</h2>
+<p>This is the piece that makes the architecture feel instant.</p>
+<p>Most implementations of the OpenAI Realtime API use <code>semantic_vad</code> or <code>server_vad</code> in the session config and let OpenAI decide when the user stopped talking. That means every audio frame travels to OpenAI&rsquo;s servers, their VAD processes it, they decide the turn is over, and only <em>then</em> does the model start generating a response. That round-trip is hundreds of milliseconds you&rsquo;re paying on every single turn.</p>
+<p>My implementation replaces this entirely with <strong>local voice activity detection</strong>. The backend runs a <a href="https://github.com/AgoraIO/ten_vad">TEN VAD</a> model that processes audio locally and makes the turn detection decision on your own hardware, with zero network round-trip:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># When local VAD is active, server-side turn detection is completely disabled.</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># The backend owns the full pipeline: detect speech end → commit buffer → trigger response.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">if</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_vad_gate <span style="color:#ff7b72;font-weight:bold">is</span> <span style="color:#ff7b72;font-weight:bold">not</span> <span style="color:#79c0ff">None</span>:
+</span></span><span style="display:flex;"><span>    result <span style="color:#ff7b72;font-weight:bold">=</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_vad_gate<span style="color:#ff7b72;font-weight:bold">.</span>process(pcm16_bytes)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b949e;font-style:italic"># Speech onset: interrupt if audio is still playing</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">if</span> result<span style="color:#ff7b72;font-weight:bold">.</span>speech_started:
+</span></span><span style="display:flex;"><span>        <span style="color:#ff7b72">if</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_response_active <span style="color:#ff7b72;font-weight:bold">or</span> has_queued_audio:
+</span></span><span style="display:flex;"><span>            <span style="color:#ff7b72">await</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_handle_interrupt()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b949e;font-style:italic"># Speech end: commit and request response immediately</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">if</span> result<span style="color:#ff7b72;font-weight:bold">.</span>speech_ended:
+</span></span><span style="display:flex;"><span>        asyncio<span style="color:#ff7b72;font-weight:bold">.</span>create_task(self<span style="color:#ff7b72;font-weight:bold">.</span>_commit_and_respond())
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">else</span>:
+</span></span><span style="display:flex;"><span>    chunks_to_send <span style="color:#ff7b72;font-weight:bold">=</span> [pcm16_bytes]  <span style="color:#8b949e;font-style:italic"># fallback: send everything, let OpenAI decide</span>
+</span></span></code></pre></div><p>The VAD gate uses a three-state machine — SILENCE, SPEECH, and HANGOVER — with a pre-roll buffer that preserves audio from just before speech onset. When speech ends, the backend immediately commits the audio buffer and sends <code>response.create</code>. No server-side VAD involved. No round-trip. The Realtime API starts generating the instant it receives the committed buffer.</p>
+<p>The <code>_commit_and_respond</code> method uses the same <code>_response_create_lock</code> that protects thinker result injection and idle nudges, because all of them compete for the same <code>response.create</code> API constraint:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">async</span> <span style="color:#ff7b72">def</span> <span style="color:#d2a8ff;font-weight:bold">_commit_and_respond</span>(self):
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">await</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_realtime_ws<span style="color:#ff7b72;font-weight:bold">.</span>send(json<span style="color:#ff7b72;font-weight:bold">.</span>dumps({<span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;input_audio_buffer.commit&#34;</span>}))
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">async</span> <span style="color:#ff7b72">with</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_response_create_lock:
+</span></span><span style="display:flex;"><span>        <span style="color:#ff7b72">await</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_response_done<span style="color:#ff7b72;font-weight:bold">.</span>wait()
+</span></span><span style="display:flex;"><span>        <span style="color:#ff7b72">if</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_running:
+</span></span><span style="display:flex;"><span>            <span style="color:#ff7b72">await</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_realtime_ws<span style="color:#ff7b72;font-weight:bold">.</span>send(json<span style="color:#ff7b72;font-weight:bold">.</span>dumps({<span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;response.create&#34;</span>}))
+</span></span></code></pre></div><p>The result: it feels like the agent starts responding before you&rsquo;ve finished talking. It isn&rsquo;t really, but the gap between end-of-speech and first audio byte is so small that it feels that way. This is <a href="/writing/local-vad/">the same VAD research I published previously</a> — 689ms improvement measured in controlled testing — now integrated into a full production architecture.</p>
+<h2 id="routing-the-dumbest-model-makes-the-most-important-decision">Routing: The Dumbest Model Makes the Most Important Decision</h2>
+<p>The Responder classifies intent via a single tool call — <code>route_to_thinker(domain, query)</code>. The domain is constrained to a fixed enum:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>ROUTE_TO_THINKER_TOOL <span style="color:#ff7b72;font-weight:bold">=</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;function&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a5d6ff">&#34;name&#34;</span>: <span style="color:#a5d6ff">&#34;route_to_thinker&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a5d6ff">&#34;parameters&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;object&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a5d6ff">&#34;properties&#34;</span>: {
+</span></span><span style="display:flex;"><span>            <span style="color:#a5d6ff">&#34;domain&#34;</span>: {
+</span></span><span style="display:flex;"><span>                <span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;string&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#a5d6ff">&#34;enum&#34;</span>: [<span style="color:#a5d6ff">&#34;weather&#34;</span>, <span style="color:#a5d6ff">&#34;stocks&#34;</span>, <span style="color:#a5d6ff">&#34;news&#34;</span>, <span style="color:#a5d6ff">&#34;knowledge&#34;</span>, <span style="color:#a5d6ff">&#34;research&#34;</span>],
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>            <span style="color:#a5d6ff">&#34;query&#34;</span>: {
+</span></span><span style="display:flex;"><span>                <span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;string&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#a5d6ff">&#34;description&#34;</span>: <span style="color:#a5d6ff">&#34;The user&#39;s question, rephrased for the specialist.&#34;</span>,
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This is architecturally interesting because <strong>your dumbest model is making the most important decision</strong>. And that&rsquo;s the right tradeoff. Routing needs to be fast — 100ms, not 2 seconds. The Responder already has full conversational context. And &ldquo;what kind of question is this?&rdquo; is a dramatically simpler task than &ldquo;what&rsquo;s the answer?&rdquo; Constraining routing to a fixed enum makes misclassification rare and fallback trivial: unknown domains go to the Knowledge Thinker.</p>
+<p>The bridge intercepts the tool call and dispatches the Thinker concurrently so the Responder keeps talking:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">case</span> <span style="color:#a5d6ff">&#34;response.function_call_arguments.done&#34;</span>:
+</span></span><span style="display:flex;"><span>    asyncio<span style="color:#ff7b72;font-weight:bold">.</span>create_task(self<span style="color:#ff7b72;font-weight:bold">.</span>_handle_tool_call(event))
+</span></span></code></pre></div><h2 id="production-failure-states-and-three-guards-against-them">Production Failure States and Three Guards Against Them</h2>
+<p>When the Thinker returns a result, you can&rsquo;t just inject it and call <code>response.create</code>. Three things can go wrong when handling real users:</p>
+<p><strong>Guard 1: The user interrupted.</strong> While the Thinker was working, the user barged in with a new question. The Thinker&rsquo;s result is stale. You still submit the tool output (the API requires it), but you don&rsquo;t ask the Responder to speak a stale answer.</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>dispatched_turn_id <span style="color:#ff7b72;font-weight:bold">=</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_turn_id  <span style="color:#8b949e;font-style:italic"># snapshot before dispatch</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># ... thinker runs ...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">if</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_turn_id <span style="color:#ff7b72;font-weight:bold">!=</span> dispatched_turn_id:
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span>  <span style="color:#8b949e;font-style:italic"># stale — user moved on</span>
+</span></span></code></pre></div><p><strong>Guard 2: The Responder is still talking.</strong> The Realtime API silently drops <code>response.create</code> while it&rsquo;s already generating a response — like the &ldquo;let me check on that&rdquo; filler. This is the primary cause of the &ldquo;thinker came back but nothing happened&rdquo; bug. You have to wait, and you have to serialize all callers:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">async</span> <span style="color:#ff7b72">with</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_response_create_lock:
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">await</span> asyncio<span style="color:#ff7b72;font-weight:bold">.</span>wait_for(self<span style="color:#ff7b72;font-weight:bold">.</span>_response_done<span style="color:#ff7b72;font-weight:bold">.</span>wait(), timeout<span style="color:#ff7b72;font-weight:bold">=</span><span style="color:#a5d6ff">10.0</span>)
+</span></span></code></pre></div><p>The lock serializes every <code>response.create</code> caller — thinker results, the local VAD commit path, idle nudges, and disconnect goodbyes — because they all compete for the same API constraint.</p>
+<p><strong>Guard 3: The user interrupted during the wait.</strong> After Guard 2 releases, check staleness again. The user could have barged in while you were blocked.</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#ff7b72">if</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_turn_id <span style="color:#ff7b72;font-weight:bold">!=</span> dispatched_turn_id:
+</span></span><span style="display:flex;"><span>        <span style="color:#ff7b72">return</span>  <span style="color:#8b949e;font-style:italic"># stale after wait</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">await</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_realtime_ws<span style="color:#ff7b72;font-weight:bold">.</span>send(json<span style="color:#ff7b72;font-weight:bold">.</span>dumps({<span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;response.create&#34;</span>}))
+</span></span></code></pre></div><p>Real callers interrupt, change their minds, and don&rsquo;t wait politely for the AI to finish thinking. You need to handle each one to have a system that feels as close to a human conversation as possible.</p>
+<h2 id="barge-in-handling">Barge-In Handling</h2>
+<p>When local VAD detects speech onset while the Responder is outputting audio, the bridge does three things:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">async</span> <span style="color:#ff7b72">def</span> <span style="color:#d2a8ff;font-weight:bold">_handle_interrupt</span>(self):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b949e;font-style:italic"># 1. Invalidate in-flight thinker tasks</span>
+</span></span><span style="display:flex;"><span>    self<span style="color:#ff7b72;font-weight:bold">.</span>_turn_id <span style="color:#ff7b72;font-weight:bold">+=</span> <span style="color:#a5d6ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b949e;font-style:italic"># 2. Cancel the active response</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">if</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_response_active:
+</span></span><span style="display:flex;"><span>        <span style="color:#ff7b72">await</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_realtime_ws<span style="color:#ff7b72;font-weight:bold">.</span>send(json<span style="color:#ff7b72;font-weight:bold">.</span>dumps({<span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;response.cancel&#34;</span>}))
+</span></span><span style="display:flex;"><span>        self<span style="color:#ff7b72;font-weight:bold">.</span>_response_active <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#79c0ff">False</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#ff7b72;font-weight:bold">.</span>_response_done<span style="color:#ff7b72;font-weight:bold">.</span>set()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b949e;font-style:italic"># 3. Flush queued audio so the speaker stops immediately</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">if</span> self<span style="color:#ff7b72;font-weight:bold">.</span>audio_track:
+</span></span><span style="display:flex;"><span>        self<span style="color:#ff7b72;font-weight:bold">.</span>audio_track<span style="color:#ff7b72;font-weight:bold">.</span>output_track<span style="color:#ff7b72;font-weight:bold">.</span>clear()
+</span></span></code></pre></div><p>Incrementing <code>_turn_id</code> is the key move. Every in-flight thinker task holds a snapshot of the turn ID from when it was dispatched. When it returns, Guard 1 catches the mismatch and discards the result. No stale answers, no race conditions, no complex cancellation logic.</p>
+<p>With local VAD, barge-in detection is also local — the backend sees speech onset in the VAD state machine before any audio reaches OpenAI. The interrupt fires faster than server-side detection could.</p>
+<h2 id="context-is-not-just-conversation-history">Context Is Not Just Conversation History</h2>
+<p>A caller asking &ldquo;is a two-bedroom available?&rdquo; means nothing without property context. &ldquo;Same unit as last time&rdquo; means nothing without user context. In production, managing multiple types of structured context beyond raw conversation history is paramount to giving your conversation a personal feel as well as better model performance.</p>
+<p>The repo demonstrates this with a typed <code>UserContext</code> model persisted in Redis — preferences, memory facts, conversation summaries, and behavioral signals — keyed by browser fingerprint for cross-session persistence:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">class</span> <span style="color:#f0883e;font-weight:bold">UserContext</span>(BaseModel):
+</span></span><span style="display:flex;"><span>    preferences: Preferences       <span style="color:#8b949e;font-style:italic"># name, location, temp unit, watched tickers</span>
+</span></span><span style="display:flex;"><span>    memory: MemoryStore            <span style="color:#8b949e;font-style:italic"># inferred facts, deduped, capped at 20</span>
+</span></span><span style="display:flex;"><span>    summary: Summary               <span style="color:#8b949e;font-style:italic"># rolling LLM-generated conversation summary</span>
+</span></span><span style="display:flex;"><span>    signals: Signals               <span style="color:#8b949e;font-style:italic"># topic counts, session count, last active</span>
+</span></span></code></pre></div><p>Thinkers return a <code>ThinkResult</code> that includes an optional <code>ContextUpdate</code> — a class describing what the thinker learned. The router applies updates after the thinker returns:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">class</span> <span style="color:#f0883e;font-weight:bold">ThinkResult</span>(BaseModel):
+</span></span><span style="display:flex;"><span>    response: str
+</span></span><span style="display:flex;"><span>    context_update: ContextUpdate <span style="color:#ff7b72;font-weight:bold">|</span> <span style="color:#79c0ff">None</span> <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#79c0ff">None</span>
+</span></span></code></pre></div><p>The Weather Thinker persists the user&rsquo;s location. The Knowledge Thinker picks up on it without being told. Context isn&rsquo;t trapped in a single agent&rsquo;s conversation. It&rsquo;s a shared, typed resource that any thinker can read from and contribute to. When context changes, the Responder&rsquo;s system prompt is updated mid-session via <code>session.update</code> so it immediately knows what the thinkers learned.</p>
+<h2 id="what-i-learned">What I Learned</h2>
+<p><strong>The cost of implementing your own turn detection with a local VAD is well worth it.</strong> The latency improvement isn&rsquo;t incremental — it&rsquo;s the difference between &ldquo;this feels like talking to a computer&rdquo; and &ldquo;this feels like talking to someone.&rdquo; Owning the turn detection pipeline means you control the most latency-sensitive decision in the entire system. If you&rsquo;re building on the Realtime API and not doing local VAD, you&rsquo;re leaving hundreds of milliseconds on the table on every turn.</p>
+<p><strong>The routing decision matters more than the reasoning quality.</strong> A perfectly accurate Thinker routed to the wrong domain produces a wrong answer. A slightly less accurate Thinker routed correctly produces a useful one. Invest in your routing prompt and your domain enum. Simple and strict rules help the dumb realtime model perform routing well. An additional consideration is using a separate LLM call to classify, but with only a handful of potential tool calls, the realtime API can do that just fine.</p>
+<p><strong>Stalling is a prompt engineering problem, not a code problem.</strong> The Realtime API naturally acknowledges the user before executing the tool call. Your system prompt just needs to tell it how. The Research Thinker in the repo simulates a 30-second delay specifically to stress-test this.</p>
+<p><strong>Multi-thinker is worth the complexity.</strong> Independent prompts, independent model tiers, independent caching TTLs, independent testing. The overhead of managing multiple agents is far less than the quality cost of a bloated single-thinker prompt.</p>
+<p><strong>Backend mediation is not optional for production.</strong> Direct browser-to-OpenAI works for demos. The moment you need state, security, observability, local VAD, or telephony support, your backend has to be in the middle. The upfront work will save you time in the long run.</p>
+<p><strong>The three guards make it feel alive.</strong> The &ldquo;thinker returned but nothing happened&rdquo; bug (Guard 2) is a frustrating one to try to debug in production and ensures the user isn&rsquo;t left hanging no matter what. The stale-result-after-interrupt bug (Guards 1 and 3) only manifested when callers talked fast and gives them the answer with the fullest context. These are things I wish I had known or discovered without the pain of production issues.</p>
+<hr>
+<p>The full implementation — local VAD, multi-thinker routing, typed user context, LangSmith observability, Docker deployment, and a 30-second research thinker for stress-testing stalling behavior — is at <a href="https://github.com/lackmannicholas/responder-thinker">github.com/lackmannicholas/responder-thinker</a>. Clone it, run it, talk to it.</p>
+<p><em>Previously: <a href="/writing/local-vad/">Cutting 600ms from Every Voice AI Turn with Local VAD</a></em>
+<em>Coming next: Adding guardrails and voice quality evals to the Responder-Thinker pattern.</em></p>
+
+      </div>
+      <footer class="article-footer">
+        <ul class="tag-list" aria-label="Tags"><li><a href="/tags/voice-ai/">Voice-Ai</a></li><li><a href="/tags/architecture/">Architecture</a></li><li><a href="/tags/openai/">Openai</a></li><li><a href="/tags/python/">Python</a></li></ul>
+        <p class="article-byline">Written by Nick Lackman, who builds agent platforms and real-time voice systems. <a href="/">More about me</a> · <a href="/writing/">More writing</a></p>
+      </footer>
+    </article>
+
+  </main>
+    <footer class="footer"><div class="shell footer-inner">
+    <p>Nick Lackman <span>Staff Software Engineer · Seattle area</span></p>
+    <div class="footer-links">
+      <a href="/writing/">Writing <span aria-hidden="true">↗</span></a>
+      <a href="/writing/index.xml">RSS <span aria-hidden="true">↗</span></a>
+      <a href="mailto:nick@lackman.dev">Email <span aria-hidden="true">↗</span></a>
+      <a href="https://www.linkedin.com/in/lackmannicholas">LinkedIn <span aria-hidden="true">↗</span></a>
+      <a href="https://github.com/lackmannicholas">GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </div></footer>
+
+  <script>
+
+const links = Array.from(document.querySelectorAll('nav a')).filter(a => a.pathname === location.pathname && a.hash);
+const sections = links.map(a => document.querySelector(a.hash)).filter(Boolean);
+if (sections.length && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      for (const a of links) {
+        if (a.hash === '#' + entry.target.id) a.setAttribute('aria-current', 'location');
+        else a.removeAttribute('aria-current');
+      }
+    }
+  }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+}
+  </script>
+</body>
+</html>

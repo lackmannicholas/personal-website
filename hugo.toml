@@ -9,7 +9,7 @@ disableKinds = ["taxonomy"]   # no /tags/ index page; each tag still gets /tags/
   description = "Nick Lackman is a Staff Software Engineer who builds agent platforms and real-time voice systems: the layer other engineers build their agents on."
   email = "nick@lackman.dev"
   github = "lackmannicholas"
-  linkedin = ""               # full URL, e.g. https://www.linkedin.com/in/... (empty hides it)
+  linkedin = "https://www.linkedin.com/in/lackmannicholas"
 
 [taxonomies]
   tag = "tags"

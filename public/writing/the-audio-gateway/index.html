@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111312">
+  <title>The Audio Gateway: The Production Pattern for Real-Time Voice AI — Nick Lackman</title>
+  <meta name="description" content="Split voice AI into a media plane that owns the real-time audio path and a business plane that owns meaning, joined by a small typed gRPC contract.">
+  <meta name="author" content="Nick Lackman">
+  <link rel="canonical" href="http://localhost:1313/writing/the-audio-gateway/">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://localhost:1313/writing/the-audio-gateway/">
+  <meta property="og:title" content="The Audio Gateway: The Production Pattern for Real-Time Voice AI — Nick Lackman">
+  <meta property="og:description" content="Split voice AI into a media plane that owns the real-time audio path and a business plane that owns meaning, joined by a small typed gRPC contract.">
+  <meta property="og:site_name" content="Nick Lackman">
+  <meta name="twitter:card" content="summary">
+  <link rel="alternate" type="application/rss+xml" href="http://localhost:1313/writing/index.xml" title="Nick Lackman — Writing">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111312'/%3E%3Cpath d='M8 24V8h4l8 11V8h4v16h-4L12 13v11Z' fill='%23fa625c'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/site.css">
+  <meta property="article:published_time" content="2026-07-16T22:30:48Z">
+  <meta property="article:modified_time" content="2026-07-16T22:30:48Z">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Nick Lackman","url":"http://localhost:1313/"},"dateModified":"2026-07-16","datePublished":"2026-07-16","description":"Split voice AI into a media plane that owns the real-time audio path and a business plane that owns meaning, joined by a small typed gRPC contract.","headline":"The Audio Gateway: The Production Pattern for Real-Time Voice AI","url":"http://localhost:1313/writing/the-audio-gateway/"}
+  </script>
+
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+    <header class="header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="Nick Lackman, home"><span class="monogram" aria-hidden="true">NL<span>.</span></span><span class="brand-name">Nick Lackman</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/#work">Work</a>
+        <a href="/writing/" aria-current="page">Writing</a>
+        <a href="/#experience">Experience</a>
+        <a href="/#contact">Contact <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <article class="shell article" aria-labelledby="article-title">
+      <header class="article-header">
+        <p class="eyebrow"><a href="/writing/">Writing</a> · <time datetime="2026-07-16">July 16, 2026</time> · 18 min read</p>
+        <h1 id="article-title">The Audio Gateway: The Production Pattern for Real-Time Voice AI</h1><p class="article-dek">Split voice AI into a media plane that owns the real-time audio path and a business plane that owns meaning, joined by a small typed gRPC contract.</p>
+      </header>
+      <div class="prose">
+<p>If your voice agent stutters under load, talks over callers, or freezes mid-sentence while a tool call runs — the fix probably isn&rsquo;t a better model. It&rsquo;s an architectural split.</p>
+<p>In my last post, <a href="/writing/python-is-lying-to-you/">Python Is Lying to You</a>, I walked through every way Python&rsquo;s async model quietly sabotages a real-time audio pipeline: the async-looking guardrail that froze the event loop, the logger doing blocking I/O on every frame, GIL contention that looks exactly like network jitter. The fixes worked. But they are all <em>defensive</em>. Move this off the hot path. Offload that to a thread. Audit every innocent-looking call. You&rsquo;re playing whack-a-mole against your own process.</p>
+<p>There&rsquo;s a point where defense stops scaling. The real fix isn&rsquo;t defending the hot path inside one process; it&rsquo;s removing everything else from the process entirely.</p>
+<p>This post is about that architecture: an <strong>audio gateway</strong> that owns the media hot path, a <strong>business plane</strong> that owns everything else, and a small gRPC contract between them. It&rsquo;s the pattern we&rsquo;re building right now and has been utilized across the realtime voice industry. I&rsquo;ve built a full, runnable, open-source reference implementation you can clone and watch work, no API key required - but OpenAI key strongly suggested: <a href="https://github.com/lackmannicholas/ai-audio-gateway">ai-audio-gateway</a>.</p>
+<h2 id="two-workloads-that-should-never-have-shared-a-process">Two workloads that should never have shared a process</h2>
+<p>A voice AI system contains two workloads with opposite requirements:</p>
+<p>The <strong>audio path</strong> is hard real time. A 20ms frame every 20ms, forever, or the caller hears a glitch. It can&rsquo;t retry, can&rsquo;t batch, can&rsquo;t hide latency behind a spinner. Its scheduling requirements are measured in single-digit milliseconds.</p>
+<p><strong>Reasoning</strong> is the opposite. Slow, bursty, variable. An LLM call might take 500ms or five seconds. A tool call hits a database, an internal API, another service. Multi-step agent loops fan out unpredictably. This work is, by nature, slow. At least until we can do deep reasoning at lightning speed, but we&rsquo;re not there yet.</p>
+<p>Put both in one process and the slow thing janks the fast thing. Every bug in my previous post is a specific instance of this one collision: CPU-bound guardrail work starving the event loop, an LLM SDK blocking at the wrong moment, a checkpoint write landing mid-frame. You can fix each instance individually running on process, or you can partition them by their workload characteristics.</p>
+<p>The production answer is to split the system into two planes:</p>
+<ul>
+<li>A <strong>media plane</strong> — the audio gateway — that owns hard real-time work: telephony or WebRTC audio I/O, VAD, playback pacing, barge-in, codec handling.</li>
+<li>A <strong>business plane</strong> that owns meaning: prompts, tools, orchestration, multi-step reasoning, data access.</li>
+</ul>
+<p>Between them, a bidirectional gRPC stream carrying a small, typed contract.</p>
+<p><img src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fx55jxblflx2ogmt1m5vj.png" alt="Two Planes"></p>
+<p>One rule governs the whole design: <strong>audio timing never waits on business work.</strong> The business plane can delay a tool result. It cannot block barge-in, response cancellation, VAD, or an outbound audio frame. Everything else in this post is a consequence of that rule.</p>
+<h2 id="you-dont-have-to-take-my-word-for-it">You don&rsquo;t have to take my word for it</h2>
+<p>This split is what the serious voice AI shops converge on, independently, because production pushes everyone to the same place.</p>
+<p><a href="https://docs.livekit.io/agents/">LiveKit</a> — the infrastructure OpenAI used to ship ChatGPT&rsquo;s Advanced Voice Mode, now serving billions of calls a year — is the cleanest example. Their media server is an SFU that forwards audio packets without ever decoding them; agents run as entirely separate processes that join a room like any other participant. Their own framing: media transport and AI inference are independent layers. LiveKit stays deliberately dumb about meaning; everything related to understanding, reasoning, or storage lives outside the media layer.</p>
+<p><a href="https://docs.vapi.ai/quickstart">Vapi</a> describes itself, verbatim, as &ldquo;an orchestration layer&rdquo; — and their data-flow documentation draws exactly this boundary: endpointing, interruption detection, and backchanneling run exclusively on Vapi&rsquo;s infrastructure, while your custom LLM and tools run on <em>your</em> servers, reached by webhook. Vapi is, functionally, a media/orchestration plane sold as a service, with your server URL as the business plane.</p>
+<p><a href="https://docs.pipecat.ai/">Pipecat</a> (Daily&rsquo;s open-source framework) is built on the same separation — transports on one side, frame processors on the other.</p>
+<p>And the deepest precedent predates all of them: telephony has separated signaling from media since SIP existed. The industry keeps rediscovering this split because real-time media and application logic have never belonged in the same process. The pattern isn&rsquo;t novel. That&rsquo;s the point: it&rsquo;s convergent. What this post adds is what the boundary looks like when the thing behind it is an <em>agent</em>: how tools, reasoning, and interruption coordination cross the wire.</p>
+<h2 id="the-contract-two-enums-you-can-read-in-a-minute">The contract: two enums you can read in a minute</h2>
+<p>There&rsquo;s no <code>.proto</code> in the reference implementation. The wire format is Pydantic envelopes serialized as JSON over a gRPC <code>stream_stream</code> with identity serializers. This gives you HTTP/2 multiplexing and bidirectional streaming, with a payload you can log and read. For an example repo, that&rsquo;s perfect to demonstrate the concept.</p>
+<p>Two enums are the contract:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">class</span> <span style="color:#f0883e;font-weight:bold">GatewayEventType</span>(str, enum<span style="color:#ff7b72;font-weight:bold">.</span>Enum):
+</span></span><span style="display:flex;"><span>    <span style="color:#a5d6ff">&#34;&#34;&#34;Gateway -&gt; Business. Things that *happened* in the media plane.&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    CALL_STARTED <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">&#34;call.started&#34;</span>
+</span></span><span style="display:flex;"><span>    USER_SPEECH_STARTED <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">&#34;user.speech_started&#34;</span>
+</span></span><span style="display:flex;"><span>    USER_SPEECH_STOPPED <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">&#34;user.speech_stopped&#34;</span>
+</span></span><span style="display:flex;"><span>    TOOL_CALL_REQUESTED <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">&#34;tool_call.requested&#34;</span>
+</span></span><span style="display:flex;"><span>    BARGE_IN <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">&#34;barge_in&#34;</span>
+</span></span><span style="display:flex;"><span>    RESPONSE_DONE <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">&#34;response.done&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b949e;font-style:italic"># ...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">class</span> <span style="color:#f0883e;font-weight:bold">GatewayCommandType</span>(str, enum<span style="color:#ff7b72;font-weight:bold">.</span>Enum):
+</span></span><span style="display:flex;"><span>    <span style="color:#a5d6ff">&#34;&#34;&#34;Business -&gt; Gateway. Things the business plane asks the media plane to do.&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    SESSION_CONFIGURE <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">&#34;session.configure&#34;</span>
+</span></span><span style="display:flex;"><span>    TOOL_CALL_OUTPUT <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">&#34;tool_call.output&#34;</span>
+</span></span><span style="display:flex;"><span>    RESPONSE_CREATE <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">&#34;response.create&#34;</span>
+</span></span><span style="display:flex;"><span>    RESPONSE_CANCEL <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">&#34;response.cancel&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b949e;font-style:italic"># ...</span>
+</span></span></code></pre></div><p>Events are past tense where the media plane owns reality and reports it. Commands are imperative where the business plane owns meaning and directs the media plane through a small vocabulary. When the vocabulary is this small, the boundary stays legible; when a new capability doesn&rsquo;t fit either enum cleanly, that&rsquo;s usually a sign it&rsquo;s on the wrong side of the wire.</p>
+<h2 id="hollow-proxy-tools-the-schema-crosses-the-behavior-doesnt">Hollow proxy tools: the schema crosses, the behavior doesn&rsquo;t</h2>
+<p>The realtime model needs tools. The tools need databases, internal APIs, and business logic. None of which belongs on the audio hot path. The mechanism that reconciles this is the piece of the architecture I like most.</p>
+<p>A tool has two halves that usually live together: a <em>schema</em> (name, description, JSON parameters. The stuff the model needs to decide to call it) and an <em>implementation</em> (the code that does the work). This architecture splits them across the wire.</p>
+<p>At call setup, the business plane sends the gateway a list of tool specs — schema only, no behavior:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">class</span> <span style="color:#f0883e;font-weight:bold">ToolSpec</span>(BaseModel):
+</span></span><span style="display:flex;"><span>    name: str
+</span></span><span style="display:flex;"><span>    description: str
+</span></span><span style="display:flex;"><span>    params_json_schema: dict[str, Any]
+</span></span><span style="display:flex;"><span>    strict_json_schema: bool <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#79c0ff">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b949e;font-style:italic"># Note what&#39;s absent: invoke().</span>
+</span></span></code></pre></div><p>The gateway builds one <strong>proxy</strong> per spec: an object the realtime model can call, whose entire body is &ldquo;relay this call across the wire and await the result.&rdquo;</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">async</span> <span style="color:#ff7b72">def</span> <span style="color:#d2a8ff;font-weight:bold">_relay_tool_call</span>(self, name: str, arguments: dict) <span style="color:#ff7b72;font-weight:bold">-&gt;</span> Any:
+</span></span><span style="display:flex;"><span>    tool_call_id <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">&#34;tc_&#34;</span> <span style="color:#ff7b72;font-weight:bold">+</span> uuid<span style="color:#ff7b72;font-weight:bold">.</span>uuid4()<span style="color:#ff7b72;font-weight:bold">.</span>hex[:<span style="color:#a5d6ff">10</span>]
+</span></span><span style="display:flex;"><span>    fut <span style="color:#ff7b72;font-weight:bold">=</span> asyncio<span style="color:#ff7b72;font-weight:bold">.</span>get_running_loop()<span style="color:#ff7b72;font-weight:bold">.</span>create_future()
+</span></span><span style="display:flex;"><span>    self<span style="color:#ff7b72;font-weight:bold">.</span>_pending[tool_call_id] <span style="color:#ff7b72;font-weight:bold">=</span> fut          <span style="color:#8b949e;font-style:italic"># correlate by id</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">await</span> self<span style="color:#ff7b72;font-weight:bold">.</span>_send_event(GatewayEvent(
+</span></span><span style="display:flex;"><span>        type<span style="color:#ff7b72;font-weight:bold">=</span>GatewayEventType<span style="color:#ff7b72;font-weight:bold">.</span>TOOL_CALL_REQUESTED,
+</span></span><span style="display:flex;"><span>        payload<span style="color:#ff7b72;font-weight:bold">=</span>{<span style="color:#a5d6ff">&#34;name&#34;</span>: name, <span style="color:#a5d6ff">&#34;tool_call_id&#34;</span>: tool_call_id,
+</span></span><span style="display:flex;"><span>                 <span style="color:#a5d6ff">&#34;arguments_json&#34;</span>: json<span style="color:#ff7b72;font-weight:bold">.</span>dumps(arguments),
+</span></span><span style="display:flex;"><span>                 <span style="color:#a5d6ff">&#34;turn_id&#34;</span>: self<span style="color:#ff7b72;font-weight:bold">.</span>_turn_id},    <span style="color:#8b949e;font-style:italic"># more on this below</span>
+</span></span><span style="display:flex;"><span>    ))
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span> <span style="color:#ff7b72">await</span> fut                            <span style="color:#8b949e;font-style:italic"># resolved by the read loop</span>
+</span></span></code></pre></div><p>The model believes it has local tools. It calls them the way it natively wants to — no special-casing. But strip the business plane away and the proxies relay to nothing. The gateway holds <em>shapes</em>, not behavior.</p>
+<h2 id="the-proof-two-agents-one-gateway-zero-gateway-changes">The proof: two agents, one gateway, zero gateway changes</h2>
+<p>The reference repo ships two agents against the identical gateway, because the directory listing alone makes the argument:</p>
+<p>The <strong>single agent</strong> exposes the four café tools (<code>get_menu</code>, <code>place_order</code>, &hellip;) directly. The gateway builds four proxies. Every tool call crosses the wire. Flat.</p>
+<p>The <strong>responder–thinker agent</strong> exposes <em>one</em> tool: the thinker. The gateway builds a single proxy. When the model calls it, one envelope crosses the wire, and then the thinker — a hand-rolled agent loop running in the business plane — fans out into its own tool calls: <code>get_menu</code>, validate, <code>place_order</code>. None of those nested calls cross back. The gateway sees one envelope out and one envelope back; behind it, a whole tree executed that the gateway is blind to.</p>
+<p><img src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fuacxwpv4s40a4xt3fb5b.png" alt="Two Agents"></p>
+<p>That blindness into tool execution is the entire point of where the boundary sits. The media plane relays shapes; whether resolving a request takes one round trip or a dozen nested calls is the business plane&rsquo;s business. This is also why the architecture survived swapping agent patterns without a gateway deploy.</p>
+<p>If you&rsquo;ve read my <a href="/writing/responder-thinker/">Responder-Thinker post</a>, this is that pattern, now with the plane boundary drawn through it: the responder lives with the realtime model behind the gateway, and the thinker&rsquo;s entire fan-out is invisible to the media plane.</p>
+<h2 id="barge-in-and-turn-staleness-coordinating-two-processes-with-one-integer">Barge-in and turn staleness: coordinating two processes with one integer</h2>
+<p>This is one of the more difficult pieces of a natural sounding conversation. When the caller interrupts, two things have to happen fast: the assistant must stop talking, and any reasoning already in flight for the old turn must not come back and speak over the new one.</p>
+<p>The first problem lives entirely in the gateway. The gateway paces assistant audio out at real time even though the model streams it much faster, which means the outbound queue <em>is</em> the backlog of not-yet-heard speech. Barge-in clears that queue instantly. It also has to fire while audio is still draining, not just while the model is generating, because a fast model finishes generating long before the caller finishes hearing. In OpenAI mode the gateway additionally cancels the response, drops in-flight deltas from the cancelled response, and truncates the model&rsquo;s conversation item to roughly what was actually played so the next turn isn&rsquo;t grounded in words the caller never heard.</p>
+<p>The second problem crosses the wire, and the mechanism is small but impactful. The gateway owns a <code>turn_id</code> that increments on every barge-in. That integer rides on every <code>tool_call.requested</code> frame. The business plane mirrors it, snapshots it before slow work, and checks it after:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># In the thinker&#39;s loop, between every step:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">if</span> is_stale(snapshot_turn_id):
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span> {<span style="color:#a5d6ff">&#34;stale&#34;</span>: <span style="color:#79c0ff">True</span>}   <span style="color:#8b949e;font-style:italic"># abandon; don&#39;t speak over a moved conversation</span>
+</span></span></code></pre></div><p>Two processes. No shared memory. Coordinating real-time state through one integer on the wire.</p>
+<p>(If that mechanism feels familiar, it&rsquo;s a degenerate <a href="https://en.wikipedia.org/wiki/Lamport_timestamp">Lamport clock</a>. A monotonic counter establishing happened-before across processes is one of the oldest tools in distributed systems, and it&rsquo;s a good reminder that a well-placed integer often beats a clever protocol.)</p>
+<p>In the reference implementation this is threaded through a <code>ToolContext</code> handed to <em>every</em> tool invocation with call id, turn id, a live <code>is_stale()</code> and the thinker passes the same context down into its nested calls. A barge-in detected three levels deep into the fan-out abandons the whole tree.</p>
+<h3 id="the-bug-that-proved-the-point">The bug that proved the point</h3>
+<p>While building the reference implementation, I hit a bug. It&rsquo;s the same lesson as the entire previous article, recurring one layer up.</p>
+<p>My first business-plane handler processed inbound events sequentially — one <code>async for</code> loop, handle each event, move on. Tool calls were awaited inline, looks clean, and totally broken: while the handler awaited a slow thinker run, it couldn&rsquo;t receive the <code>barge_in</code> event. The staleness check could never fire because the message that creates staleness was stuck behind the work it needed to invalidate.</p>
+<p>The fix was to run tool execution as concurrent tasks so the event pump never blocks. Which is, of course, &ldquo;don&rsquo;t block the loop&rdquo; except this time the loop being blocked was a gRPC stream handler instead of an audio callback. The failure mode follows you across process boundaries. I know this seemed like you almost didn&rsquo;t need to care about async discipline in your business plane, but the discipline is still needed. Just isolated to a few distinct places rather than the entire process.</p>
+<h2 id="endpointing-one-clock-one-authority">Endpointing: one clock, one authority</h2>
+<p>A component of barge-in. Deciding <em>when the caller stopped talking</em> is where responsiveness is won or lost, and the operating rule is that exactly one component owns that decision.</p>
+<p>In the reference implementation, the preferred authority is local VAD in the gateway (TEN VAD – the same local-VAD approach I benchmarked in <a href="/writing/local-vad/">an earlier post</a>, worth roughly 600ms per turn against OpenAI server-side semantic VAD). When local VAD is active, the gateway disables the realtime provider&rsquo;s server-side turn detection entirely; its own VAD commits the audio buffer and requests the response. Run both authorities at once and every utterance triggers duplicate responses. Just fyi, you don&rsquo;t want to do that.</p>
+<p>The critical tuning knob in the whole system lives here: the hangover. No, not your post-weekend headache or the movie. It&rsquo;s how much trailing silence must accumulate before the utterance is committed. It&rsquo;s a hard floor on response latency, and it&rsquo;s the parameter that background noise attacks: noise holds the gate open and the agent appears to stall. To make it measurable rather than vibes-based, the gateway emits a <code>turn_latency</code> event per turn (utterance commit → first assistant audio). If you take one operational idea from this post, it&rsquo;s that metric: latency per turn, measured at the boundary you control.</p>
+<h2 id="but-what-if-one-good-model-makes-all-this-obsolete">&ldquo;But what if one good model makes all this obsolete?&rdquo;</h2>
+<p>This is the most compelling objection I&rsquo;ve heard that makes me question the validity of this approach. Speech-to-speech models are getting dramatically better. If one model can eventually handle the conversation <em>and</em> the reasoning then there&rsquo;s no need for a responder-thinker split, and no separate text-model calls. Doesn&rsquo;t this whole gateway become overhead?</p>
+<p>The objection has two claims. Let&rsquo;s review each.</p>
+<p>Claim one: a capable-enough audio model collapses the responder-thinker pattern into one model. Plausibly true, eventually (likely already here with duplex architectures. See <a href="https://openai.com/index/introducing-gpt-live/">https://openai.com/index/introducing-gpt-live/</a>, and <a href="https://docs.x.ai/developers/model-capabilities/audio/voice-agent">https://docs.x.ai/developers/model-capabilities/audio/voice-agent</a>). That&rsquo;s the direction the frontier is moving and the multi-model <em>pattern</em> may well be transitional.</p>
+<p>Claim two: therefore you don&rsquo;t need the gateway. This doesn&rsquo;t follow, because the gateway and the agent pattern solve different problems at different layers. The gateway is about <em>where audio is processed</em>; the agent pattern is about <em>how many models reason behind it</em>. Collapse the brain count to one, and you still have: telephony or WebRTC I/O, jitter buffering, pacing, VAD and endpointing, barge-in and queue-clearing, codec handling, reconnection, and tool execution, which still needs databases and internal APIs that don&rsquo;t belong in the media plane. The proxy relay is completely indifferent to how many models sit behind it. One model calling tools through hollow proxies is the same architecture as two.</p>
+<p>And there&rsquo;s a second argument that consolidation actually <em>strengthens</em>: betting your entire audio experience on a single external model means you want an abstraction layer more, not less. <strong>The gateway is what lets you swap providers, fall back during an outage, or A/B a new model without touching business logic.</strong> The two-agents-one-gateway demo is exactly this. We changed the entire reasoning topology based on a configuration parameter passed in by the UI and the gateway didn&rsquo;t change. The layer that survives your architectural bets is the layer worth building.</p>
+<p>Keep the agent patterns as ever changing and the hard physical realities as an invariant. They&rsquo;re independent decisions, and conflating them is how you end up rebuilding the coupling we&rsquo;ve just escaped.</p>
+<h2 id="where-mcp-fits">Where MCP fits</h2>
+<p>If your organization is moving tools to MCP servers the question becomes: who holds the MCP connections?</p>
+<p>Two options:</p>
+<p>You can hand MCP server configs to the gateway and let the media plane connect directly. This has the fewest hops, but now the process with 20ms deadlines owns tool-infrastructure connections, auth, and failure handling. We just added non-realtime concerns to our realtime voice gateway. The exact coupling this architecture exists to prevent, and you lose the policy/observability control point.</p>
+<p>You can treat the business plane as a passthrough proxy to MCP (works, but framing it as &ldquo;an extra proxy&rdquo; invites the why-not-go-direct objection). Rephrased slightly: <strong>business plane is the MCP host</strong>: it owns the MCP client connections, aggregates tools across servers, and presents one unified toolset. The gateway never learns MCP exists. The proxies relay to the agent service exactly as before; whether the tool behind the interface is a local function or an MCP call is an implementation detail of the meaning plane.</p>
+<p>The clean test of the boundary: we could swap the entire tool layer from local functions to MCP servers, and the gateway contract wouldn&rsquo;t move an inch. When a tool-strategy migration doesn&rsquo;t touch your media plane, the planes are actually decoupled.</p>
+<p><strong>The same fork exists even if you never build a gateway.</strong> Blackbox voice providers offer both topologies, and which one you configure determines who holds your credentials. Vapi&rsquo;s server-URL model inverts the auth: when the model calls a tool, <em>Vapi calls your server</em> — authenticating to you with an API key or OAuth2 client credentials that your endpoint validates. Your plane stays the host; your internal secrets never leave. Their native MCP client is the other topology: you hand Vapi your MCP server URL — which their own docs say to treat as a credential — and Vapi connects at call start, discovers your tools, injects the schemas into the model, and invokes your MCP server directly on every tool call. That&rsquo;s the vendor&rsquo;s plane becoming your MCP host, with a credentialed doorway into your tool infrastructure. Neither is wrong; but the decision framework above applies to buy exactly as much as build. That decision shouldn&rsquo;t be made by accident.</p>
+<h2 id="what-else-lives-in-the-business-plane">What else lives in the business plane</h2>
+<p>Tools are the flashiest wire-crossers, but they&rsquo;re not the reason the boundary earns its keep. The stronger examples are the responsibilities that <em>can&rsquo;t</em> be an MCP server — the ones that need the conversation itself.</p>
+<p>Guardrails are the sharpest case. A policy check on what the agent is about to say — off-limits topics, compliance language, PII — is business logic that must observe every transcript in near-real-time and occasionally veto audio. It cannot live in the hot path (it&rsquo;s exactly the CPU-bound work my last post was about), and it can&rsquo;t be a tool the model politely decides to call. The architecture&rsquo;s answer: transcripts already cross the wire as events, the guardrail runs in the business plane, and the small command vocabulary (<code>response.cancel</code>) is its veto. Decision in the meaning plane, mechanism in the media plane. The same concept as everything else here.</p>
+<p>The same applies to post-call processing, pushing transcripts to analytics, conversation summarization, CRM writes. None of it belongs within a mile of a 20ms frame deadline, all of it needs the conversation stream, and the event side of the contract is how it gets fed without the gateway knowing any of it exists.</p>
+<h2 id="what-it-costs">What it costs</h2>
+<p>None of this is free, and not addressing the cost is bad engineering.</p>
+<p>You now run two services instead of one: two deploys, two failure domains, distributed debugging. (Mitigation: propagate trace context across the gRPC stream so business-plane tool spans nest under the gateway spans that requested them — one trace per call, both planes visible.) Every wire-crossing tool call pays serialization and a network hop; keep the planes network-close and this is small against LLM latency, but measure it. The dev loop changes: engineers iterating on prompts and tools shouldn&rsquo;t need the audio stack running, so the gRPC seam has to be testable from both sides. The reference repo ships harnesses for exactly this. The same seam that a skeptic might call overhead is what makes each plane independently testable. The contract becomes a real interface you have to version and maintain with the discipline of a public API, because that&rsquo;s what it is now.</p>
+<h3 id="an-aside-why-grpc-though">An aside: &ldquo;why gRPC, though?&rdquo;</h3>
+<p>Because this is the question I have gotten right after &ldquo;why two services,&rdquo; here&rsquo;s the receipts version.</p>
+<p>Typed streaming RPC between planes is exactly how LiveKit coordinates internally: they built <a href="https://github.com/livekit/psrpc">psrpc</a> — protobuf service definitions with bidirectional streaming — and use it for signaling relay, room management, and agent job dispatch across their mesh. They chose a message-bus transport (Redis/NATS) instead of point-to-point HTTP/2 because their problem is a global multi-node mesh that needs topics, fan-out, and affinity routing. Ours is two co-located services, so point-to-point gRPC is the correct simplification of the same invariant: a <strong>typed, bidirectional-streaming contract between planes</strong>. The invariant is the contract; the transport follows the topology.</p>
+<p>If the skepticism is &ldquo;but gRPC can&rsquo;t handle real-time audio,&rdquo; let&rsquo;s review some use-cases: NVIDIA Riva ships its entire speech stack as gRPC streaming microservices running thousands of parallel streams, and Google Cloud Speech-to-Text&rsquo;s streaming recognition is a bidirectional gRPC stream, audio chunks in, interim transcripts back mid-sentence. That said, note what this architecture actually does: <strong>audio never crosses the bridge.</strong> The gRPC stream carries events, commands, and tool relays; audio flows gateway↔caller and gateway↔model. LiveKit makes the same move — media rides WebRTC, psrpc carries control. The bridge is a control plane, and control planes are exactly what gRPC is for.</p>
+<p>(What the closed shops like Vapi, Deepgram, ElevenLabs run internally isn&rsquo;t public. Their WebSocket-heavy edges are a browser-and-telephony compatibility choice, not an internal architecture statement.)</p>
+<p>Worth it? At demo scale, probably not. One process is simpler and the collisions haven&rsquo;t started. At production call volume, where one CPU spike in business logic becomes audible artifacts across every concurrent call on the box, the split stops being optional. We learned the workload-collision lesson the hard way at GA and fixed it with a cruder separation under pressure; the gateway is the deliberate version of that lesson, built before the next fire instead of during it.</p>
+<h2 id="the-takeaway">The takeaway</h2>
+<p>The bugs in my last post were all one bug: two workloads with incompatible timing requirements sharing a process. You can defend the hot path forever — or you can give it its own process, its own event loop, its own deploy, and a small typed contract to the plane where slowness is allowed.</p>
+<p>The whole reference implementation — both agents, the mock realtime model, the barge-in and staleness machinery, the browser demo — is at <a href="https://github.com/lackmannicholas/ai-audio-gateway">github.com/lackmannicholas/ai-audio-gateway</a>. It runs with no API key: <code>docker compose up</code>, open the browser, order a coffee, and watch the wire.</p>
+<hr>
+<p><em>Part of a series on building production voice AI. Previously: <a href="/writing/local-vad/">Local VAD</a> · <a href="/writing/responder-thinker/">Responder-Thinker</a> · <a href="/writing/websockets-vs-webrtc/">WebRTC vs WebSockets</a> · <a href="/writing/python-is-lying-to-you/">Python Is Lying to You</a>.</em></p>
+
+      </div>
+      <footer class="article-footer">
+        <ul class="tag-list" aria-label="Tags"><li><a href="/tags/architecture/">Architecture</a></li><li><a href="/tags/voice-ai/">Voice-Ai</a></li><li><a href="/tags/python/">Python</a></li></ul>
+        <p class="article-byline">Written by Nick Lackman, who builds agent platforms and real-time voice systems. <a href="/">More about me</a> · <a href="/writing/">More writing</a></p>
+      </footer>
+    </article>
+
+  </main>
+    <footer class="footer"><div class="shell footer-inner">
+    <p>Nick Lackman <span>Staff Software Engineer · Seattle area</span></p>
+    <div class="footer-links">
+      <a href="/writing/">Writing <span aria-hidden="true">↗</span></a>
+      <a href="/writing/index.xml">RSS <span aria-hidden="true">↗</span></a>
+      <a href="mailto:nick@lackman.dev">Email <span aria-hidden="true">↗</span></a>
+      <a href="https://www.linkedin.com/in/lackmannicholas">LinkedIn <span aria-hidden="true">↗</span></a>
+      <a href="https://github.com/lackmannicholas">GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </div></footer>
+
+  <script>
+
+const links = Array.from(document.querySelectorAll('nav a')).filter(a => a.pathname === location.pathname && a.hash);
+const sections = links.map(a => document.querySelector(a.hash)).filter(Boolean);
+if (sections.length && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      for (const a of links) {
+        if (a.hash === '#' + entry.target.id) a.setAttribute('aria-current', 'location');
+        else a.removeAttribute('aria-current');
+      }
+    }
+  }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+}
+  </script>
+</body>
+</html>

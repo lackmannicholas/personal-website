@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111312">
+  <title>Dude, Where’s My Response? Cutting 600ms from Every Voice AI Turn with Local VAD — Nick Lackman</title>
+  <meta name="description" content="Replacing OpenAI Realtime API server-side turn detection with local VAD cut perceived latency by 689ms per substantive turn in a controlled 100-turn test over production telephony.">
+  <meta name="author" content="Nick Lackman">
+  <link rel="canonical" href="http://localhost:1313/writing/local-vad/">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://localhost:1313/writing/local-vad/">
+  <meta property="og:title" content="Dude, Where’s My Response? Cutting 600ms from Every Voice AI Turn with Local VAD — Nick Lackman">
+  <meta property="og:description" content="Replacing OpenAI Realtime API server-side turn detection with local VAD cut perceived latency by 689ms per substantive turn in a controlled 100-turn test over production telephony.">
+  <meta property="og:site_name" content="Nick Lackman">
+  <meta name="twitter:card" content="summary">
+  <link rel="alternate" type="application/rss+xml" href="http://localhost:1313/writing/index.xml" title="Nick Lackman — Writing">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111312'/%3E%3Cpath d='M8 24V8h4l8 11V8h4v16h-4L12 13v11Z' fill='%23fa625c'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/site.css">
+  <meta property="article:published_time" content="2026-03-21T02:45:02Z">
+  <meta property="article:modified_time" content="2026-03-21T02:45:02Z">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Nick Lackman","url":"http://localhost:1313/"},"dateModified":"2026-03-21","datePublished":"2026-03-21","description":"Replacing OpenAI Realtime API server-side turn detection with local VAD cut perceived latency by 689ms per substantive turn in a controlled 100-turn test over production telephony.","headline":"Dude, Where’s My Response? Cutting 600ms from Every Voice AI Turn with Local VAD","url":"http://localhost:1313/writing/local-vad/"}
+  </script>
+
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+    <header class="header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="Nick Lackman, home"><span class="monogram" aria-hidden="true">NL<span>.</span></span><span class="brand-name">Nick Lackman</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/#work">Work</a>
+        <a href="/writing/" aria-current="page">Writing</a>
+        <a href="/#experience">Experience</a>
+        <a href="/#contact">Contact <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <article class="shell article" aria-labelledby="article-title">
+      <header class="article-header">
+        <p class="eyebrow"><a href="/writing/">Writing</a> · <time datetime="2026-03-21">March 21, 2026</time> · 9 min read</p>
+        <h1 id="article-title">Dude, Where&rsquo;s My Response? Cutting 600ms from Every Voice AI Turn with Local VAD</h1><p class="article-dek">Replacing OpenAI Realtime API server-side turn detection with local VAD cut perceived latency by 689ms per substantive turn in a controlled 100-turn test over production telephony.</p>
+      </header>
+      <div class="prose">
+<p>If you&rsquo;re building voice AI on OpenAI&rsquo;s Realtime API, your agent is slower than it needs to be — the main bottleneck is certainly inference but there&rsquo;s additional overhead to cut.</p>
+<p>I spent the past week instrumenting a production telephony voice pipeline, measuring where latency actually lives, and testing whether local voice activity detection (VAD) could meaningfully reduce response time. The answer is yes — by <strong>689ms per turn on substantive responses</strong> — and the methodology is cleaner than I expected.</p>
+<p>Here&rsquo;s what I found, how I measured it, and why it matters for anyone building conversational AI on the Realtime API.</p>
+<h2 id="the-hidden-latency-tax">The Hidden Latency Tax</h2>
+<p>When you build a voice agent on OpenAI&rsquo;s Realtime API — whether you&rsquo;re using the OpenAI Agents SDK, a custom WebSocket implementation, or any orchestration framework — the audio pipeline follows the same path:</p>
+<ol>
+<li>The user speaks, and your telephony provider (Twilio, in my case) streams audio frames to your server</li>
+<li>Your server forwards every audio frame to OpenAI&rsquo;s Realtime API via WebSocket (<code>input_audio_buffer.append</code>)</li>
+<li>OpenAI&rsquo;s server-side VAD (<code>semantic_vad</code>, the default) processes the audio and decides when the user has stopped talking</li>
+<li>Only after the server-side VAD commits the audio buffer does the LLM begin generating a response</li>
+<li>The generated audio streams back to your server and out to the caller</li>
+</ol>
+<p>The problem is step 3. Every VAD decision requires a network round-trip. The audio has to travel to OpenAI&rsquo;s server, get processed by their turn detection model, and the commit decision happens server-side. Your code doesn&rsquo;t even participate — if you look at the OpenAI Agents SDK source, <code>input_audio_buffer.speech_stopped</code> is handled as an informational notification. The server has already committed and started response generation by the time your code hears about it.</p>
+<p>This adds an irreducible network latency plus server-side model deliberation time on every single turn. And in a conversational AI system, latency after the user stops speaking is the most perceptible kind — it&rsquo;s the moment they&rsquo;re actively waiting.</p>
+<h2 id="the-approach-local-vad--manual-turn-control">The Approach: Local VAD + Manual Turn Control</h2>
+<p>The Realtime API supports disabling server-side turn detection entirely. When you set <code>turn_detection</code> to <code>null</code>, the server stops making autonomous commit decisions, and you take control of when to send <code>input_audio_buffer.commit</code> and <code>response.create</code>.</p>
+<p>This means you can run a VAD model locally on your server, process the same audio frames as they arrive from Twilio — before they&rsquo;re even sent to OpenAI — and commit the turn the moment <em>you</em> detect silence. The audio is already on your machine. There&rsquo;s no round-trip to wait for.</p>
+<p>I used <a href="https://huggingface.co/TEN-framework/ten-vad">TEN VAD</a> (by Agora) as the local model, running via ONNX Runtime. More on why TEN VAD below.</p>
+<h2 id="why-not-just-use-silero">Why Not Just Use Silero?</h2>
+<p>I evaluated three tiers of VAD before settling on TEN VAD:</p>
+<p><strong>Energy-based VAD</strong> (WebRTC VAD, fast-vad) uses signal processing — energy levels, spectral characteristics, zero-crossing rates — to make binary speech/no-speech decisions. Extremely fast, but can&rsquo;t distinguish speech energy from background noise. WebRTC VAD misses roughly 1 out of every 2 speech frames at a 5% false positive rate. Not viable for production turn detection.</p>
+<p><strong>Silero VAD</strong> is the industry-standard ML-based VAD — an LSTM-based architecture trained on 6,000+ languages, available as an ONNX model. Significantly more accurate than energy-based approaches. But it has a meaningful limitation for conversational AI: it suffers from a multi-hundred-millisecond delay when detecting speech-to-silence transitions. The recurrent architecture needs several silence frames to shift its internal state, which translates directly to turn detection delay.</p>
+<p><strong>TEN VAD</strong> (by Agora) is purpose-built for real-time conversational AI turn detection. Agora has 10+ years of experience in real-time voice infrastructure, and it shows. In my testing, TEN VAD detected speech-to-silence transitions with a median head start of <strong>722ms</strong> over OpenAI&rsquo;s server-side VAD, compared to <strong>342ms</strong> for Silero under the same conditions. It also achieves a 32% lower Real-Time Factor and 86% smaller library footprint than Silero, which matters when you&rsquo;re running VAD alongside everything else in a voice pipeline.</p>
+<p>The key advantage for turn detection is transition speed. TEN VAD operates on 16kHz audio with 10ms frame hops, giving it finer temporal resolution than Silero&rsquo;s minimum 32ms chunks. It correctly identifies short silent durations between adjacent speech segments that Silero misses entirely.</p>
+<h2 id="test-methodology">Test Methodology</h2>
+<p>Measuring this correctly turned out to be the hardest part. The naive approach — comparing &ldquo;local VAD detected silence at time X&rdquo; vs &ldquo;server sent speech_stopped at time Y&rdquo; — has a fundamental bias: the server&rsquo;s <code>speech_stopped</code> event arrives <em>after</em> the server has already begun processing, so it makes server-side VAD look artificially fast.</p>
+<p>The solution: <strong>use local VAD as a passive timestamp observer in both configurations.</strong> In the server-side VAD test runs, TEN VAD runs locally but doesn&rsquo;t commit or trigger responses — it only records when it detects silence. This gives both configurations the same &ldquo;true speech end&rdquo; anchor point.</p>
+<p>The test protocol:</p>
+<ul>
+<li><strong>50 turns per configuration</strong> — local VAD + commit vs server-side <code>semantic_vad</code></li>
+<li><strong>Scripted test calls</strong> from a cell phone through production Twilio PSTN infrastructure (8kHz µ-law audio)</li>
+<li><strong>Common measurement anchor</strong>: both configurations measure perceived latency from the true moment speech ends, as detected by the passive local TEN VAD observer</li>
+<li><strong>Controlled quiet-room environment</strong> to isolate the VAD comparison from acoustic variability</li>
+<li><strong>Perceived latency</strong> defined as: true speech end → first audio byte emitted to the caller</li>
+</ul>
+<h3 id="filler-response-segmentation">Filler Response Segmentation</h3>
+<p>An important methodological consideration: the LLM non-deterministically generates &ldquo;filler&rdquo; responses (e.g., &ldquo;Let me look that up for you&rdquo;) that respond in under 1 second. Server-side VAD received 44% fillers vs 32% for local VAD in my test runs, which biases the unsegmented comparison. I present results segmented by response type to control for this.</p>
+<h2 id="results">Results</h2>
+<h3 id="non-filler-turns-primary-comparison">Non-Filler Turns (Primary Comparison)</h3>
+<p>These are substantive AI responses where the LLM performs real inference. LLM latency is closely matched between configurations, isolating the VAD effect.</p>
+<table>
+	<thead>
+			<tr>
+					<th>Metric</th>
+					<th>Local VAD</th>
+					<th>Server VAD</th>
+					<th>Delta</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Sample size</td>
+					<td>34 turns</td>
+					<td>28 turns</td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><strong>Perceived latency (median)</strong></td>
+					<td><strong>2,412ms</strong></td>
+					<td><strong>3,101ms</strong></td>
+					<td><strong>-689ms</strong></td>
+			</tr>
+			<tr>
+					<td>Perceived latency (mean)</td>
+					<td>2,396ms</td>
+					<td>3,216ms</td>
+					<td>-820ms</td>
+			</tr>
+			<tr>
+					<td>LLM latency (median)</td>
+					<td>2,183ms</td>
+					<td>2,263ms</td>
+					<td>~equal</td>
+			</tr>
+			<tr>
+					<td>Cohen&rsquo;s d</td>
+					<td><strong>1.04 (large)</strong></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td>Significance</td>
+					<td><strong>p &lt; 0.001</strong></td>
+					<td>t = 3.93</td>
+					<td></td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>22% reduction in perceived latency</strong> with closely matched LLM latency, confirming the improvement is attributable to the VAD change, not LLM variance.</p>
+<h3 id="filler-turns-cleanest-proof-of-vad-effect">Filler Turns (Cleanest Proof of VAD Effect)</h3>
+<p>Filler turns provide the cleanest isolation because LLM latency is virtually identical — the entire improvement is pure VAD overhead.</p>
+<table>
+	<thead>
+			<tr>
+					<th>Metric</th>
+					<th>Local VAD</th>
+					<th>Server VAD</th>
+					<th>Delta</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Sample size</td>
+					<td>16 turns</td>
+					<td>22 turns</td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><strong>Perceived latency (median)</strong></td>
+					<td><strong>679ms</strong></td>
+					<td><strong>1,134ms</strong></td>
+					<td><strong>-454ms</strong></td>
+			</tr>
+			<tr>
+					<td>LLM latency (mean)</td>
+					<td>519ms</td>
+					<td>517ms</td>
+					<td>~equal</td>
+			</tr>
+			<tr>
+					<td>Cohen&rsquo;s d</td>
+					<td><strong>1.74 (very large)</strong></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td>Significance</td>
+					<td><strong>p &lt; 0.001</strong></td>
+					<td>t = 5.81</td>
+					<td></td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>40% reduction.</strong> With LLM latency at 519ms vs 517ms (effectively identical), the entire 454ms improvement is pure VAD overhead eliminated. This is the irreducible cost of server-side turn detection made visible.</p>
+<h3 id="response-time-distribution">Response Time Distribution</h3>
+<p>The distribution shift tells the most compelling story:</p>
+<table>
+	<thead>
+			<tr>
+					<th>Threshold</th>
+					<th>Local VAD</th>
+					<th>Server VAD</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Under 1 second</td>
+					<td><strong>28%</strong></td>
+					<td>4%</td>
+			</tr>
+			<tr>
+					<td>Under 1.5 seconds</td>
+					<td>42%</td>
+					<td>36%</td>
+			</tr>
+			<tr>
+					<td>Under 2.5 seconds</td>
+					<td><strong>78%</strong></td>
+					<td>54%</td>
+			</tr>
+			<tr>
+					<td>Under 3 seconds</td>
+					<td><strong>92%</strong></td>
+					<td>70%</td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>28% of local VAD turns respond in under 1 second vs essentially 0% for server-side VAD.</strong> Sub-second response time is a qualitatively different user experience — it&rsquo;s the difference between a conversation that feels like talking to a person versus waiting for a system.</p>
+<p>Over a 10-turn call, the cumulative improvement is approximately <strong>5–7 seconds</strong>.</p>
+<h2 id="how-to-implement-this">How to Implement This</h2>
+<p>The Realtime API makes this straightforward. The key is setting <code>turn_detection</code> to <code>null</code> in your session configuration, which puts you in manual turn control mode:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># Disable server-side VAD</span>
+</span></span><span style="display:flex;"><span>session_update <span style="color:#ff7b72;font-weight:bold">=</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;session.update&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a5d6ff">&#34;session&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;realtime&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a5d6ff">&#34;audio&#34;</span>: {
+</span></span><span style="display:flex;"><span>            <span style="color:#a5d6ff">&#34;input&#34;</span>: {
+</span></span><span style="display:flex;"><span>                <span style="color:#a5d6ff">&#34;turn_detection&#34;</span>: <span style="color:#79c0ff">None</span>  <span style="color:#8b949e;font-style:italic"># Manual turn control</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">await</span> websocket<span style="color:#ff7b72;font-weight:bold">.</span>send(json<span style="color:#ff7b72;font-weight:bold">.</span>dumps(session_update))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># When your local VAD detects end of speech:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">await</span> websocket<span style="color:#ff7b72;font-weight:bold">.</span>send(json<span style="color:#ff7b72;font-weight:bold">.</span>dumps({
+</span></span><span style="display:flex;"><span>    <span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;input_audio_buffer.commit&#34;</span>
+</span></span><span style="display:flex;"><span>}))
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">await</span> websocket<span style="color:#ff7b72;font-weight:bold">.</span>send(json<span style="color:#ff7b72;font-weight:bold">.</span>dumps({
+</span></span><span style="display:flex;"><span>    <span style="color:#a5d6ff">&#34;type&#34;</span>: <span style="color:#a5d6ff">&#34;response.create&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a5d6ff">&#34;response&#34;</span>: {<span style="color:#a5d6ff">&#34;output_modalities&#34;</span>: [<span style="color:#a5d6ff">&#34;audio&#34;</span>]}
+</span></span><span style="display:flex;"><span>}))
+</span></span></code></pre></div><p>If you&rsquo;re using the OpenAI Agents SDK (Python), the same mechanism works through the session&rsquo;s manual turn control:</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#ff7b72">await</span> session<span style="color:#ff7b72;font-weight:bold">.</span>send_audio(audio_bytes, commit<span style="color:#ff7b72;font-weight:bold">=</span><span style="color:#79c0ff">True</span>)
+</span></span></code></pre></div><p>The approach works identically regardless of your orchestration framework — it&rsquo;s all the same Realtime API WebSocket protocol underneath.</p>
+<p>For the local VAD model, <a href="https://github.com/TEN-framework/ten-vad">TEN VAD</a> is available on Hugging Face with ONNX weights and Python bindings. <a href="https://github.com/snakers4/silero-vad">Silero VAD</a> is the more established alternative if you want a simpler setup, though you&rsquo;ll see slower transition detection.</p>
+<h2 id="whats-next-speculative-response-generation">What&rsquo;s Next: Speculative Response Generation</h2>
+<p>With local VAD handling turn detection, the remaining bottleneck is LLM inference (~2.2s median on non-filler turns). The next optimization I&rsquo;m exploring is <strong>speculative response generation</strong> — using the local VAD&rsquo;s early silence detection to trigger LLM inference <em>before</em> we&rsquo;re fully certain the user has finished speaking. This allows for super tight local VAD configuration that wouldn&rsquo;t fly in production without OpenAI&rsquo;s server-side VAD confirmation.</p>
+<p>The generated audio would be buffered rather than played immediately. If the user continues speaking, we discard the speculative response. If they&rsquo;re done, the response is already generated and plays almost instantly.</p>
+<p>The Realtime API supports a hybrid configuration for this: set <code>turn_detection.create_response = false</code> and <code>turn_detection.interrupt_response = false</code>. This keeps semantic_vad running as a signal while leaving response timing under your control — the best of both worlds.</p>
+<p>Early prototyping suggests this could save an additional 200–300ms, potentially bringing total response latency consistently under 2 seconds. But the edge cases are real — still working through the interplay between local VAD and OpenAI&rsquo;s server-side VAD.</p>
+<h2 id="methodology-details">Methodology Details</h2>
+<p>For those who want to reproduce this or poke holes in it:</p>
+<p><strong>Perceived latency</strong> is defined as the interval from true speech end (local TEN VAD detection) to first audio byte emitted to the telephony provider. Both configurations are measured from the same anchor point — this eliminates the measurement bias inherent in using the server&rsquo;s <code>speech_stopped</code> event.</p>
+<p><strong>Commit latency</strong> (local VAD mode only): true speech end → server acknowledgment of <code>input_audio_buffer.committed</code>. Median 122ms — this is the WebSocket round-trip overhead that local VAD adds. A small price for a large gain.</p>
+<p><strong>LLM latency</strong>: server commit acknowledgment → first audio delta from OpenAI. This is the model inference time, independent of VAD choice.</p>
+<p><strong>Filler segmentation threshold</strong>: LLM latency &lt; 1000ms. Filler responses are non-deterministic LLM behavior (e.g., &ldquo;Let me find that for you&rdquo;) and are not controllable by VAD configuration.</p>
+<p><strong>Statistical tests</strong>: Welch&rsquo;s two-sample t-test (unequal variances), Cohen&rsquo;s d for effect size. All p-values are two-tailed.</p>
+<p><strong>Environment</strong>: Controlled quiet-room conditions. Scripted test calls from cell phone through production Twilio PSTN infrastructure (8kHz µ-law, ~20ms frames). Test dates: March 20–21, 2026.</p>
+<hr>
+<p><em>I build real-time AI voice systems — telephony pipelines, streaming audio, LLM orchestration. If you&rsquo;re working on similar problems, I&rsquo;d love to hear what latency challenges you&rsquo;re seeing. Reach out on <a href="https://www.linkedin.com/in/lackmannicholas">LinkedIn</a>.</em></p>
+
+      </div>
+      <footer class="article-footer">
+        <ul class="tag-list" aria-label="Tags"><li><a href="/tags/latency/">Latency</a></li><li><a href="/tags/voice-ai/">Voice-Ai</a></li><li><a href="/tags/openai/">Openai</a></li><li><a href="/tags/websockets/">Websockets</a></li></ul>
+        <p class="article-byline">Written by Nick Lackman, who builds agent platforms and real-time voice systems. <a href="/">More about me</a> · <a href="/writing/">More writing</a></p>
+      </footer>
+    </article>
+
+  </main>
+    <footer class="footer"><div class="shell footer-inner">
+    <p>Nick Lackman <span>Staff Software Engineer · Seattle area</span></p>
+    <div class="footer-links">
+      <a href="/writing/">Writing <span aria-hidden="true">↗</span></a>
+      <a href="/writing/index.xml">RSS <span aria-hidden="true">↗</span></a>
+      <a href="mailto:nick@lackman.dev">Email <span aria-hidden="true">↗</span></a>
+      <a href="https://www.linkedin.com/in/lackmannicholas">LinkedIn <span aria-hidden="true">↗</span></a>
+      <a href="https://github.com/lackmannicholas">GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </div></footer>
+
+  <script>
+
+const links = Array.from(document.querySelectorAll('nav a')).filter(a => a.pathname === location.pathname && a.hash);
+const sections = links.map(a => document.querySelector(a.hash)).filter(Boolean);
+if (sections.length && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      for (const a of links) {
+        if (a.hash === '#' + entry.target.id) a.setAttribute('aria-current', 'location');
+        else a.removeAttribute('aria-current');
+      }
+    }
+  }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+}
+  </script>
+</body>
+</html>

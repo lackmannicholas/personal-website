@@ -103,11 +103,35 @@
     <section class="shell section" id="writing" aria-labelledby="writing-title" style="padding-top:0">
       <div class="section-heading"><div><p class="eyebrow">02 / Writing</p><h2 id="writing-title">Notes from<br>production.</h2></div><p class="section-intro">What real-time voice and agent systems teach you once real users are on the line. <a href="/writing/" style="text-decoration:underline;text-underline-offset:5px">All writing ↗</a></p></div>
       <ul class="writing-list">
-  <li><a href="/writing/async-def-is-lying-to-you/">
+  <li><a href="/writing/the-audio-gateway/">
     <div>
-      <h3>Your <code>async def</code> is lying to you</h3><p>Blocking work hiding inside async Python, and what it costs a real-time voice path.</p>
+      <h3>The Audio Gateway: The Production Pattern for Real-Time Voice AI</h3><p>Split voice AI into a media plane that owns the real-time audio path and a business plane that owns meaning, joined by a small typed gRPC contract.</p>
     </div>
-    <span class="writing-meta">Sep 2026 · python</span>
+    <span class="writing-meta">Jul 2026 · architecture</span>
+  </a></li>
+  <li><a href="/writing/python-is-lying-to-you/">
+    <div>
+      <h3>Python Is Lying to You: Async Pitfalls in Real-Time Audio Pipelines</h3><p>Why async def doesn&rsquo;t mean non-blocking: CPU-bound guardrails, blocking loggers, and GIL contention that degrade production voice AI audio, and the fixes.</p>
+    </div>
+    <span class="writing-meta">Jun 2026 · python</span>
+  </a></li>
+  <li><a href="/writing/responder-thinker/">
+    <div>
+      <h3>Voice AI: Fast and Dumb or Slow and Smart — Why Not Fast and Smart?</h3><p>The Responder-Thinker pattern for production voice AI: a realtime model that stays present, specialist thinkers that get it right, backend mediation, and local VAD.</p>
+    </div>
+    <span class="writing-meta">Apr 2026 · voice-ai</span>
+  </a></li>
+  <li><a href="/writing/local-vad/">
+    <div>
+      <h3>Dude, Where&rsquo;s My Response? Cutting 600ms from Every Voice AI Turn with Local VAD</h3><p>Replacing OpenAI Realtime API server-side turn detection with local VAD cut perceived latency by 689ms per substantive turn in a controlled 100-turn test over production telephony.</p>
+    </div>
+    <span class="writing-meta">Mar 2026 · latency</span>
+  </a></li>
+  <li><a href="/writing/websockets-vs-webrtc/">
+    <div>
+      <h3>I Tested Our WebSocket Audio Pipeline with WebRTC. Here&rsquo;s Why I Switched It Back.</h3><p>A production proof-of-concept comparing WebSocket and WebRTC transport for PSTN voice AI: same latency, same audio quality, and why the boring pipeline won.</p>
+    </div>
+    <span class="writing-meta">Mar 2026 · webrtc</span>
   </a></li>
 </ul>
 
@@ -130,6 +154,7 @@
       <div class="section-heading"><div><p class="eyebrow">04 / Contact</p><h2 id="contact-title">Let’s talk.</h2></div><p class="section-intro">Agent platforms, real-time systems, and the evaluation problems in between.</p></div>
       <div class="contact-grid">
         <a href="mailto:nick@lackman.dev"><span>Email</span><strong>nick@lackman.dev<em aria-hidden="true">↗</em></strong></a>
+        <a href="https://www.linkedin.com/in/lackmannicholas"><span>LinkedIn</span><strong>Nick Lackman<em aria-hidden="true">↗</em></strong></a>
         <a href="https://github.com/lackmannicholas"><span>GitHub</span><strong>lackmannicholas<em aria-hidden="true">↗</em></strong></a>
       </div>
       <div class="closing"><span class="closing-mark" aria-hidden="true">NL.</span><div><p class="eyebrow">What I want to do next</p><p>Own a core agent primitive.<br>Make it useful across teams.<br><span>Keep improving it in production.</span></p></div></div>
@@ -143,6 +168,7 @@
       <a href="/writing/">Writing <span aria-hidden="true">↗</span></a>
       <a href="/writing/index.xml">RSS <span aria-hidden="true">↗</span></a>
       <a href="mailto:nick@lackman.dev">Email <span aria-hidden="true">↗</span></a>
+      <a href="https://www.linkedin.com/in/lackmannicholas">LinkedIn <span aria-hidden="true">↗</span></a>
       <a href="https://github.com/lackmannicholas">GitHub <span aria-hidden="true">↗</span></a>
     </div>
   </div></footer>
