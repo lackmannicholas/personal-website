@@ -1,8 +1,8 @@
 ---
-title: "Dude, Where's My Response? Cutting 600ms from Every Voice AI Turn with Local VAD"
+title: "Cutting 600ms from Every Voice AI Turn with Local VAD"
 description: "Replacing OpenAI Realtime API server-side turn detection with local VAD cut perceived latency by 689ms per substantive turn in a controlled 100-turn test over production telephony."
 date: 2026-03-21T02:45:02Z
-lastmod: 2026-03-21T02:45:02Z
+lastmod: 2026-09-28T05:05:44Z
 tags: ["latency", "voice-ai", "openai", "websockets"]
 draft: false
 ---
@@ -107,7 +107,7 @@ The distribution shift tells the most compelling story:
 | Under 2.5 seconds | **78%** | 54% |
 | Under 3 seconds | **92%** | 70% |
 
-**28% of local VAD turns respond in under 1 second vs essentially 0% for server-side VAD.** Sub-second response time is a qualitatively different user experience — it's the difference between a conversation that feels like talking to a person versus waiting for a system.
+**28% of local VAD turns respond in under 1 second vs 4% for server-side VAD.** Sub-second response time is a qualitatively different user experience — it's the difference between a conversation that feels like talking to a person versus waiting for a system.
 
 Over a 10-turn call, the cumulative improvement is approximately **5–7 seconds**.
 

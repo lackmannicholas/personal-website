@@ -18,8 +18,8 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111312'/%3E%3Cpath d='M8 24V8h4l8 11V8h4v16h-4L12 13v11Z' fill='%23fa625c'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/css/site.css">
   <meta property="article:published_time" content="2026-06-12T04:14:07Z">
-  <meta property="article:modified_time" content="2026-06-12T04:14:07Z">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Nick Lackman","url":"http://localhost:1313/"},"dateModified":"2026-06-12","datePublished":"2026-06-12","description":"Why async def doesn\u0026#39;t mean non-blocking: CPU-bound guardrails, blocking loggers, and GIL contention that degrade production voice AI audio, and the fixes.","headline":"Python Is Lying to You: Async Pitfalls in Real-Time Audio Pipelines","url":"http://localhost:1313/writing/python-is-lying-to-you/"}
+  <meta property="article:modified_time" content="2026-09-28T05:05:44Z">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Nick Lackman","url":"http://localhost:1313/"},"dateModified":"2026-09-28","datePublished":"2026-06-12","description":"Why async def doesn\u0026#39;t mean non-blocking: CPU-bound guardrails, blocking loggers, and GIL contention that degrade production voice AI audio, and the fixes.","headline":"Python Is Lying to You: Async Pitfalls in Real-Time Audio Pipelines","url":"http://localhost:1313/writing/python-is-lying-to-you/"}
   </script>
 
 </head>
@@ -192,10 +192,11 @@
 <p>The fix isn&rsquo;t rewriting everything in Rust/C++ or abandoning Python. It&rsquo;s knowing where the constraints are, designing around them, keeping CPU-bound work off the path where milliseconds are audible, and architecting your system with these constraints in mind.</p>
 <p>More on that in the next blog post: The Audio Gateway.</p>
 <hr>
-<p><em>This is part of a series on building production voice AI systems. Previously: <a href="/writing/local-vad/">Dude, Where&rsquo;s My Response? Cutting 700ms from Every Voice AI Turn with Local VAD</a> | <a href="/writing/responder-thinker/">Your Voice Agent Needs Two Brains: Building Multi-Thinker on OpenAI&rsquo;s Realtime API</a> | <a href="/writing/websockets-vs-webrtc/">I Tested Our WebSocket Audio Pipeline with WebRTC. Here&rsquo;s Why I Switched It Back.</a></em></p>
+<p><em>This is part of a series on building production voice AI systems. Previously: <a href="/writing/local-vad/">Cutting 600ms from Every Voice AI Turn with Local VAD</a> | <a href="/writing/responder-thinker/">Your Voice Agent Needs Two Brains: Building Multi-Thinker on OpenAI&rsquo;s Realtime API</a> | <a href="/writing/websockets-vs-webrtc/">I Tested Our WebSocket Audio Pipeline with WebRTC. Here&rsquo;s Why I Switched It Back.</a></em></p>
 
       </div>
       <footer class="article-footer">
+        <p class="small-label">Updated September 28, 2026</p>
         <ul class="tag-list" aria-label="Tags"><li><a href="/tags/python/">Python</a></li><li><a href="/tags/latency/">Latency</a></li><li><a href="/tags/voice-ai/">Voice-Ai</a></li></ul>
         <p class="article-byline">Written by Nick Lackman, who builds agent platforms and real-time voice systems. <a href="/">More about me</a> · <a href="/writing/">More writing</a></p>
       </footer>
@@ -203,11 +204,11 @@
 
   </main>
     <footer class="footer"><div class="shell footer-inner">
-    <p>Nick Lackman <span>Staff Software Engineer · Seattle area</span></p>
+    <p>Nick Lackman <span>Staff Software Engineer · Bremerton, WA</span></p>
     <div class="footer-links">
       <a href="/writing/">Writing <span aria-hidden="true">↗</span></a>
       <a href="/writing/index.xml">RSS <span aria-hidden="true">↗</span></a>
-      <a href="mailto:nick@lackman.dev">Email <span aria-hidden="true">↗</span></a>
+      <a href="mailto:lackmannicholas@gmail.com">Email <span aria-hidden="true">↗</span></a>
       <a href="https://www.linkedin.com/in/lackmannicholas">LinkedIn <span aria-hidden="true">↗</span></a>
       <a href="https://github.com/lackmannicholas">GitHub <span aria-hidden="true">↗</span></a>
     </div>

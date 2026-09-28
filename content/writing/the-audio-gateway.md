@@ -2,7 +2,7 @@
 title: "The Audio Gateway: The Production Pattern for Real-Time Voice AI"
 description: "Split voice AI into a media plane that owns the real-time audio path and a business plane that owns meaning, joined by a small typed gRPC contract."
 date: 2026-07-16T22:30:48Z
-lastmod: 2026-07-16T22:30:48Z
+lastmod: 2026-09-28T05:05:44Z
 tags: ["architecture", "voice-ai", "python"]
 draft: false
 ---
@@ -158,7 +158,7 @@ The fix was to run tool execution as concurrent tasks so the event pump never bl
 
 A component of barge-in. Deciding *when the caller stopped talking* is where responsiveness is won or lost, and the operating rule is that exactly one component owns that decision.
 
-In the reference implementation, the preferred authority is local VAD in the gateway (TEN VAD – the same local-VAD approach I benchmarked in [an earlier post](/writing/local-vad/), worth roughly 600ms per turn against OpenAI server-side semantic VAD). When local VAD is active, the gateway disables the realtime provider's server-side turn detection entirely; its own VAD commits the audio buffer and requests the response. Run both authorities at once and every utterance triggers duplicate responses. Just fyi, you don't want to do that.
+In the reference implementation, the preferred authority is local VAD in the gateway (TEN VAD – the same local-VAD approach I benchmarked in [an earlier post](/writing/local-vad/), which reduced substantive-turn latency by 689ms against OpenAI server-side semantic VAD). When local VAD is active, the gateway disables the realtime provider's server-side turn detection entirely; its own VAD commits the audio buffer and requests the response. Run both authorities at once and every utterance triggers duplicate responses. Just fyi, you don't want to do that.
 
 The critical tuning knob in the whole system lives here: the hangover. No, not your post-weekend headache or the movie. It's how much trailing silence must accumulate before the utterance is committed. It's a hard floor on response latency, and it's the parameter that background noise attacks: noise holds the gate open and the agent appears to stall. To make it measurable rather than vibes-based, the gateway emits a `turn_latency` event per turn (utterance commit → first assistant audio). If you take one operational idea from this post, it's that metric: latency per turn, measured at the boundary you control.
 

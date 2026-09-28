@@ -42,7 +42,7 @@ distribution and remove it from this one.
 
 ## Email on lackman.dev
 
-`nick@lackman.dev` is the contact address on the site (`hugo.toml` → `email`).
+The site contact address is set in `hugo.toml` and currently matches the resume: `lackmannicholas@gmail.com`. The `lackman.dev` mailbox below is a separate DNS setup example.
 
 1. Add `lackman.dev` at your mail provider (Fastmail, Google Workspace, or iCloud+).
 2. In the `lackman.dev` hosted zone, create exactly what the provider lists:

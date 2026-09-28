@@ -10,7 +10,7 @@
 		
 		
 		
-			<lastBuildDate>Thu, 16 Jul 2026 22:30:48 +0000</lastBuildDate>
+			<lastBuildDate>Mon, 28 Sep 2026 05:05:44 +0000</lastBuildDate>
 		
 			<atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
 			<item>
@@ -35,7 +35,7 @@
 				<description>&lt;p&gt;Many voice AI demos connect the browser directly to a real-time audio model API and lets the server decide when you&amp;rsquo;ve stopped talking. That&amp;rsquo;s a demo architecture with a built-in latency tax that quickly breaks down in production. Here&amp;rsquo;s the production alternative: a backend-mediated, multi-thinker voice system with local voice activity detection that owns the entire audio pipeline end-to-end.&lt;/p&gt;&#xA;&lt;p&gt;I spent the last year and half building production voice AI systems that handle thousands of calls per day. This post covers the architecture I wish someone had documented when I started: how to make your voice AI product fast and smart, what the Responder-Thinker pattern is, why single-thinker breaks, how to build multi-thinker with your backend in the middle, and why local VAD is the key to making it feel instant.&lt;/p&gt;</description>
 			</item>
 			<item>
-				<title>Dude, Where&#39;s My Response? Cutting 600ms from Every Voice AI Turn with Local VAD</title>
+				<title>Cutting 600ms from Every Voice AI Turn with Local VAD</title>
 				<link>http://localhost:1313/writing/local-vad/</link>
 				<pubDate>Sat, 21 Mar 2026 02:45:02 +0000</pubDate>
 				<guid>http://localhost:1313/writing/local-vad/</guid>

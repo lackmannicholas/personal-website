@@ -2,7 +2,7 @@
 title: "Voice AI: Fast and Dumb or Slow and Smart — Why Not Fast and Smart?"
 description: "The Responder-Thinker pattern for production voice AI: a realtime model that stays present, specialist thinkers that get it right, backend mediation, and local VAD."
 date: 2026-04-06T23:26:29Z
-lastmod: 2026-04-06T23:26:29Z
+lastmod: 2026-09-28T05:05:44Z
 tags: ["voice-ai", "architecture", "openai", "python"]
 draft: false
 ---

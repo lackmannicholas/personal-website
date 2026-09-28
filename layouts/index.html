@@ -1,6 +1,6 @@
 {{ define "main" }}
     <section class="hero shell" id="top" aria-labelledby="hero-title">
-      <div class="hero-kicker"><span class="eyebrow">Staff Software Engineer · Agent Platform &amp; Real-Time Systems</span><span class="location">Seattle area · Washington</span></div>
+      <div class="hero-kicker"><span class="eyebrow">Staff Software Engineer · Agent Platform &amp; Real-Time Systems</span><span class="location">Bremerton · Washington</span></div>
       <div class="hero-grid">
         <div>
           <h1 id="hero-title">Agent systems.<br><span>Built to be</span><br>built on.</h1>
@@ -17,9 +17,9 @@
         </aside>
       </div>
       <div class="evidence-strip" aria-label="At a glance">
-        <div><strong>7,000 <span>calls / day</span></strong><p>Live production voice traffic on the agent harness I built</p></div>
-        <div><strong>−689 <span>ms</span></strong><p>Latency from one VAD change · controlled A/B, p &lt; 0.001</p></div>
-        <div><strong>13 <span>years</span></strong><p>From founding engineer to shared platforms and agent infrastructure</p></div>
+        <div><strong>~6,000 <span>calls / day</span></strong><p>Production leasing AI voice product I helped take to GA</p></div>
+        <div><strong>−689 <span>ms</span></strong><p>Substantive-turn latency in a controlled VAD study · p &lt; 0.001</p></div>
+        <div><strong>13+ <span>years</span></strong><p>From founding engineer to shared platforms and agent infrastructure</p></div>
       </div>
     </section>
 
@@ -33,16 +33,16 @@
             <h3 id="platform-title">Agent Platform</h3>
             <p class="project-subtitle">Teams own what an agent does.<br>The platform owns how it runs.</p>
             <p>The mandate was one sentence: teams need to build and ship an agent in four hours. Every product team building an agent was re-solving the same undifferentiated problems: voice transport, observability, sessions, and release. The platform separates agent configuration from agent execution so those problems get solved once.</p>
-            <p>Product teams own prompts, tools, and configuration. The platform owns execution, versioning, eval-gated release, and deployment. Engineers can work from their own repositories through a code-first plane, and release control is chosen per agent: a demo agent ships with a click, while agents handling payments and personal data ship through an engineering-owned path.</p>
-            <div class="contribution"><span class="small-label">My role</span><p>Co-owner and one of two technical owners, accountable for the whole system. Primary author of the real-time voice plane, runtime deployment strategies, shared memory and sessions, and the code-first interaction plane.</p></div>
+            <p>Product teams own prompts, tools, and configuration. The platform owns execution, versioning, eval-gated release, and deployment. I designed a code-first SDK path, and release control is chosen per agent: low-risk agents can ship with a click, while agents handling payments and personal data use CI-gated releases.</p>
+            <div class="contribution"><span class="small-label">My role</span><p>Co-architect and co-owner of the platform. I own the voice plane, sessions, and long-term memory (Mem0), and designed the code-first SDK and Google Enterprise Agent Platform paths.</p></div>
           </div>
           <div class="voice-panel">
             <p class="small-label">Ownership contract</p>
             <ul class="integration-list">
               <li><span>Product teams own</span><strong>Prompts · tools · configuration</strong></li>
               <li><span>Platform owns</span><strong>Runtime · versioning · eval gates · release</strong></li>
-              <li><span>Release paths</span><strong>Button-click · git-managed CI/CD</strong></li>
-              <li><span>In build</span><strong>Agent identity · cost governance · long-term memory · Temporal · MCP gateway</strong></li>
+              <li><span>Release paths</span><strong>Button-click · CI-gated</strong></li>
+              <li><span>In build</span><strong>Agent identity · cost governance</strong></li>
             </ul>
           </div>
         </div>
@@ -50,17 +50,17 @@
 
       <article class="project" aria-labelledby="voice-title">
         <div class="project-topline"><span class="project-number">02</span><span class="eyebrow">Real-time agent systems</span><span class="project-label">Voice / Streaming / Latency</span></div>
-        <div class="project-grid"><div class="project-copy"><h3 id="voice-title">A voice agent is<br>a systems problem.</h3><p>I built the foundation of the agent harness behind Lumina Workforce, part of RealPage’s publicly launched Lumina AI Suite: orchestration, voice transport, and agent runtime. It handles about 7,000 live calls a day. Nobody asked for the audio gateway; I identified the pattern and pushed to build it because it stabilizes voice latency and quality.</p><p>The hardest problem was latency, which turned out to be performance engineering across the whole real-time path. One voice activity detection change, run as a controlled A/B test, cut latency by 689 ms (p &lt; 0.001, Cohen’s d = 1.04).</p></div><div class="voice-panel"><p class="small-label">Integration experience</p><ul class="integration-list"><li><span>Speech recognition</span><strong>Deepgram</strong></li><li><span>Speech generation</span><strong>Deepgram · ElevenLabs</strong></li><li><span>Real-time interaction</span><strong>OpenAI Realtime</strong></li><li><span>Telephony &amp; transport</span><strong>Twilio · WebSockets · WebRTC · gRPC</strong></li></ul></div></div>
+        <div class="project-grid"><div class="project-copy"><h3 id="voice-title">A voice agent is<br>a systems problem.</h3><p>I designed and built Agentix, the orchestration framework for RealPage’s production leasing AI voice agent, and led the product from prototype to GA. It currently handles about 6,000 calls a day, with 400,000+ units onboarded.</p><p>Profiling and optimizing the full audio pipeline cut median response time from about five seconds to about three seconds. In a separate 100-turn controlled study, local VAD reduced substantive-turn latency by 689 ms (22%; p &lt; 0.001, Cohen’s d = 1.04).</p></div><div class="voice-panel"><p class="small-label">Integration experience</p><ul class="integration-list"><li><span>Orchestration</span><strong>LangGraph · OpenAI Agents SDK</strong></li><li><span>Real-time interaction</span><strong>OpenAI Realtime API</strong></li><li><span>Telephony &amp; transport</span><strong>WebSockets · WebRTC · SIP · gRPC</strong></li><li><span>Audio handling</span><strong>Opus · μ-law · PCM16</strong></li></ul></div></div>
       </article>
 
       <article class="project" aria-labelledby="evals-title">
         <div class="project-topline"><span class="project-number">03</span><span class="eyebrow">Evaluation</span><span class="project-label">Evals / Quality signals</span></div>
-        <div class="project-grid"><div class="project-copy"><h3 id="evals-title">Evals for output<br>with no ground truth.</h3><p>Fixing latency raised a bigger question: why couldn’t we see when voice quality was getting worse? Voice output has no ground truth and nothing practical to label. I proposed and designed a reference-free, three-layer audio eval suite and took it from a CLI prototype into our eval stack.</p><p>Public reference implementation: <a href="https://github.com/lackmannicholas/voice-evals">github.com/lackmannicholas/voice-evals</a></p></div><div class="voice-panel"><p class="small-label">Three evaluation layers</p><ul class="integration-list"><li><span>Layer 1</span><strong>Acoustic &amp; perceptual quality</strong></li><li><span>Layer 2</span><strong>Conversational dynamics</strong></li><li><span>Layer 3</span><strong>Audio LLM-as-judge</strong></li></ul><p class="panel-note">Reference-free and unsupervised: zero per-clip labeling.</p></div></div>
+        <div class="project-grid"><div class="project-copy"><h3 id="evals-title">Evals for output<br>with no ground truth.</h3><p>Voice output has no ground truth, so I originated reference-free audio evals to measure its quality. DNSMOS, turn-taking measures, and audio LLM-as-judge now run in production.</p><p>Public reference implementation: <a href="https://github.com/lackmannicholas/voice-evals">github.com/lackmannicholas/voice-evals</a></p></div><div class="voice-panel"><p class="small-label">Three evaluation layers</p><ul class="integration-list"><li><span>Layer 1</span><strong>Acoustic &amp; perceptual quality</strong></li><li><span>Layer 2</span><strong>Conversational dynamics</strong></li><li><span>Layer 3</span><strong>Audio LLM-as-judge</strong></li></ul><p class="panel-note">Reference-free voice quality signals.</p></div></div>
       </article>
 
       <article class="project" aria-labelledby="agentix-title">
-        <div class="project-topline"><span class="project-number">04</span><span class="eyebrow">Shared agent library</span><span class="project-label">Python / LangGraph</span></div>
-        <div class="project-grid"><div class="project-copy"><h3 id="agentix-title">Agentix</h3><p>An orchestration framework I built by extracting core agent logic into a reusable Python package. Six production agents across fifteen channels were built on it. When the organization standardized on the OpenAI Agents SDK, I led the migration off the framework I had built.</p></div><div class="voice-panel"><p class="small-label">What carried over</p><ul class="integration-list"><li><span>Durable</span><strong>Interfaces other teams depended on</strong></li><li><span>Replaceable</span><strong>The framework underneath</strong></li></ul></div></div>
+        <div class="project-topline"><span class="project-number">04</span><span class="eyebrow">Voice agent orchestration</span><span class="project-label">Python / LangGraph</span></div>
+        <div class="project-grid"><div class="project-copy"><h3 id="agentix-title">Agentix</h3><p>I designed and built Agentix for real-time LLM orchestration over telephony. It coordinates streaming audio, WebSocket telephony integration, and multi-step LangGraph agents for the production leasing AI voice product.</p></div><div class="voice-panel"><p class="small-label">Core capabilities</p><ul class="integration-list"><li><span>Streaming</span><strong>Audio and telephony integration</strong></li><li><span>Orchestration</span><strong>Multi-step LangGraph agents</strong></li></ul></div></div>
       </article>
     </section>
 
@@ -74,14 +74,12 @@
 
     <section class="experience-section" id="experience" aria-labelledby="experience-title"><div class="shell section">
       <div class="section-heading"><div><p class="eyebrow">03 / Experience</p><h2 id="experience-title">Hands-on depth.<br>Cross-team perspective.</h2></div><p class="section-intro">Individual contribution, informed by having led engineering teams, a platform group, and a startup’s engineering function.</p></div>
-      <div class="experience-layout"><div class="experience-intro"><p class="large-number">13</p><p class="experience-years">years in software engineering</p><p class="experience-aside">Self-taught. BBA and MS in CIS, Boston University.</p></div><div class="timeline">
-        <article><div class="timeline-label">Current · RealPage, Agentic AI</div><h3>Staff Software Engineer</h3><p class="timeline-subtitle">Agent platform &amp; real-time voice · 100% hands-on, no direct reports · Title of record: Sr. Manager, Agentic AI Engineering (HR classification)</p><ul><li>Co-owner of the internal Agent Platform, accountable for the whole system.</li><li>Built the foundation of the Lumina Workforce agent harness, about 7,000 live calls a day.</li><li>Built Agentix, then led the migration to the OpenAI Agents SDK.</li><li>Proposed and designed reference-free audio evals.</li></ul></article>
-        <!-- VERIFY: exact title of record for the Knock / RealPage management role. -->
-        <article><div class="timeline-label">RealPage / Knock</div><h3>Senior Software Engineering Manager</h3><p class="timeline-subtitle">Platform &amp; Infrastructure as Code</p><p>Led platform and IaC work, including reusable Terraform stacks that cut environment creation from six months to one day. At peak, led 24 engineers across four teams before choosing to return to IC work.</p></article>
-        <article><div class="timeline-label">Knock</div><h3>Application &amp; platform modernization</h3><p class="timeline-subtitle">Backend systems · Python · APIs</p><p>Led a Python 2.7-to-3.6 migration spanning 600,000 lines of code and 800 endpoints.</p></article>
-        <article><div class="timeline-label">OceanSmart</div><h3>Founding Engineer &amp; Acting Head of Engineering</h3><p class="timeline-subtitle">~40-person company</p><p>Built the product as a founding engineer and set technical direction with the CEO and investors. The company reached profitability within 18 months.</p></article>
-        <!-- VERIFY: titles and dates for Oceaneering and CGI. -->
-        <article><div class="timeline-label">Oceaneering &amp; CGI</div><h3>Software Engineer</h3><p class="timeline-subtitle">Enterprise systems · Java</p><p>Started my career shipping production Java.</p></article>
+      <div class="experience-layout"><div class="experience-intro"><p class="large-number">13+</p><p class="experience-years">years in software engineering</p><p class="experience-aside">BBA in Management Information Systems, Washington State University; MS in Computer Information Systems, Boston University.</p></div><div class="timeline">
+        <article><div class="timeline-label">RealPage · Oct 2024–Present</div><h3>Staff Software Engineer – Agentic AI</h3><p class="timeline-subtitle">Agent Platform and real-time voice</p><ul><li>Co-architect and co-own the internal Agent Platform.</li><li>Led the leasing AI voice product from prototype to GA; currently about 6,000 calls a day.</li><li>Designed and built Agentix for real-time LLM orchestration.</li><li>Originated reference-free audio evals, now running in production.</li></ul></article>
+        <article><div class="timeline-label">RealPage · Oct 2022–Oct 2024</div><h3>Senior Software Engineering Manager</h3><p class="timeline-subtitle">Telephony, Auth, Data Services, IaC</p><p>Managed engineering teams and restructured Terraform provisioning, reducing new environment creation from six months to one day across 190 engineers.</p></article>
+        <article><div class="timeline-label">Knock · Jan–Oct 2022</div><h3>Staff Software Engineer, then Software Engineering Manager</h3><p class="timeline-subtitle">Staff: Jan–Jul 2022 · Manager: Jul–Oct 2022 · Telephony, Auth, Data Services</p><p>Led a Python 2.7-to-3 migration spanning 600,000 lines of code, 800 endpoints, and 50 asynchronous Celery tasks.</p></article>
+        <article><div class="timeline-label">OceanSmart · Aug 2019–Jan 2022</div><h3>Founding Engineer &amp; Engineering Manager</h3><p class="timeline-subtitle">Maritime software platform</p><p>One of five founding tech leads. Built engineering teams and helped take the company to profitability in year two.</p></article>
+        <article><div class="timeline-label">Oceaneering Global Data Solutions · Aug 2014–Aug 2019; CGI · Mar 2013–Aug 2014</div><h3>Software Developer II; Software Developer</h3><p class="timeline-subtitle">Early engineering roles</p><p>Built production systems before moving into engineering leadership and agent infrastructure.</p></article>
       </div></div>
     </div></section>
 

@@ -7,7 +7,7 @@ disableKinds = ["taxonomy"]   # no /tags/ index page; each tag still gets /tags/
 [params]
   author = "Nick Lackman"
   description = "Nick Lackman is a Staff Software Engineer who builds agent platforms and real-time voice systems: the layer other engineers build their agents on."
-  email = "nick@lackman.dev"
+  email = "lackmannicholas@gmail.com"
   github = "lackmannicholas"
   linkedin = "https://www.linkedin.com/in/lackmannicholas"
 

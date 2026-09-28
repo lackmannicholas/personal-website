@@ -2,7 +2,7 @@
 title: "Python Is Lying to You: Async Pitfalls in Real-Time Audio Pipelines"
 description: "Why async def doesn't mean non-blocking: CPU-bound guardrails, blocking loggers, and GIL contention that degrade production voice AI audio, and the fixes."
 date: 2026-06-12T04:14:07Z
-lastmod: 2026-06-12T04:14:07Z
+lastmod: 2026-09-28T05:05:44Z
 tags: ["python", "latency", "voice-ai"]
 draft: false
 ---
@@ -244,4 +244,4 @@ More on that in the next blog post: The Audio Gateway.
 
 ---
 
-*This is part of a series on building production voice AI systems. Previously: [Dude, Where's My Response? Cutting 700ms from Every Voice AI Turn with Local VAD](/writing/local-vad/) | [Your Voice Agent Needs Two Brains: Building Multi-Thinker on OpenAI's Realtime API](/writing/responder-thinker/) | [I Tested Our WebSocket Audio Pipeline with WebRTC. Here's Why I Switched It Back.](/writing/websockets-vs-webrtc/)*
+*This is part of a series on building production voice AI systems. Previously: [Cutting 600ms from Every Voice AI Turn with Local VAD](/writing/local-vad/) | [Your Voice Agent Needs Two Brains: Building Multi-Thinker on OpenAI's Realtime API](/writing/responder-thinker/) | [I Tested Our WebSocket Audio Pipeline with WebRTC. Here's Why I Switched It Back.](/writing/websockets-vs-webrtc/)*
