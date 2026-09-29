@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,29 +8,1844 @@
   <!-- Company-specific page: keep it out of search results. -->
   <meta name="robots" content="noindex, nofollow">
   <link rel="canonical" href="https://nicklackman.com/for/netflix/">
-  <meta name="description" content="Nick Lackman — Staff Software Engineer building agent platforms, real-time voice systems, and the foundations other engineers ship agents on. Prepared for Netflix Agent Platform.">
+  <meta name="description"
+    content="Nick Lackman — Staff Software Engineer building agent platforms, real-time voice systems, and the foundations other engineers ship agents on. Prepared for Netflix Agent Platform.">
   <title>Nick Lackman — Agent platforms & real-time systems</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111312'/%3E%3Cpath d='M8 24V8h4l8 11V8h4v16h-4L12 13v11Z' fill='%23fa625c'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111312'/%3E%3Cpath d='M8 24V8h4l8 11V8h4v16h-4L12 13v11Z' fill='%23fa625c'/%3E%3C/svg%3E">
   <style>
-@charset "UTF-8";
-:root{color-scheme:dark;--bg:#111312;--panel:#181b19;--text:#f3f4f0;--muted:#a8aea7;--accent:#fa625c;--line:#343a35;--font:Arial,Helvetica,sans-serif;--mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
-*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:110px}body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:1rem;line-height:1.65;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,a,summary{-webkit-tap-highlight-color:transparent}a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:6px}::selection{background:var(--accent);color:var(--bg)}p,h1,h2,h3,h4{margin:0}h1,h2,h3,h4{font-weight:500}ul{margin:0;padding:0}code{font-family:var(--mono);font-size:.875em;overflow-wrap:anywhere}.shell{max-width:1240px;padding-left:48px;padding-right:48px;margin:0 auto}.eyebrow,.small-label,.timeline-label{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;font-weight:400}.eyebrow{color:var(--muted)}.small-label{color:var(--muted)}.skip{position:fixed;top:-100px;left:20px;z-index:10;background:var(--text);color:var(--bg);padding:12px 20px}.skip:focus{top:12px}.header{position:sticky;top:0;z-index:5;border-bottom:1px solid var(--line);background:rgba(17,19,18,.96)}.header-inner{height:84px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:14px}.monogram{font-size:1.55rem;font-weight:700;letter-spacing:-.07em}.monogram span{color:var(--accent)}.brand-name{font-size:.875rem;font-weight:500}nav{display:flex;gap:34px;font-size:.875rem}nav a{color:#c4cac3;transition:color .2s}nav a:hover,nav a[aria-current="location"]{color:var(--text)}nav a[aria-current="location"]{text-decoration:underline;text-underline-offset:8px;text-decoration-color:var(--accent)}nav a:last-child span{color:var(--accent);padding-left:7px}.hero{padding-top:44px}.hero-kicker{display:flex;justify-content:space-between;align-items:center;gap:16px}.location{font-size:.75rem;font-family:var(--mono);color:var(--muted)}.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:74px;padding:52px 0 58px}h1{font-size:clamp(3.7rem,7.2vw,6.05rem);line-height:1.025;letter-spacing:-.065em;font-weight:500}h1>span{color:var(--muted)}.intro{max-width:520px;font-size:1.125rem;line-height:1.65;color:#c4cac3;margin-top:30px}.primary-link{display:inline-flex;align-items:center;gap:44px;font-size:.875rem;font-weight:600;background:var(--text);color:#111312;padding:13px 19px;margin-top:30px;transition:background .2s,transform .2s}.primary-link:hover{background:var(--accent);transform:translateY(-2px)}.primary-link span{font-size:1.3rem}.hero-note{padding-top:12px;align-self:end;padding-bottom:4px}.note-label{display:flex;align-items:center;gap:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.09em;font-size:.75rem}.red-rule{display:block;width:24px;height:2px;background:var(--accent)}.target-company{font-size:2.5rem;line-height:1.25;letter-spacing:-.05em;margin-top:20px}.target-role{font-size:.875rem;line-height:1.7;color:var(--muted);margin-top:9px}.note-divider{height:1px;background:var(--line);margin:28px 0}.note-copy{font-size:1.05rem;line-height:1.6}.focus-list{list-style:none;margin-top:20px;font-size:.875rem;color:var(--muted)}.focus-list li{padding:5px 0}.evidence-strip{display:grid;grid-template-columns:1fr 1fr 1.2fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:28px 0}.evidence-strip>div{padding:0 28px;border-left:1px solid var(--line)}.evidence-strip>div:first-child{padding-left:0;border:0}.evidence-strip>div:last-child{padding-right:0}.evidence-strip strong{font-size:1.8rem;font-weight:500;letter-spacing:-.045em;line-height:1.3}.evidence-strip strong span{font-size:1.125rem;color:var(--muted);letter-spacing:-.025em}.evidence-strip strong .metric-arrow{color:var(--accent);padding:0 8px;font-size:1.6rem}.evidence-strip p{font-size:.8125rem;color:var(--muted);margin-top:9px}.section{padding-top:102px;padding-bottom:100px}.section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:52px;margin-bottom:46px}.section-heading .eyebrow{margin-bottom:24px;color:var(--accent)}h2{font-size:clamp(2.15rem,3.5vw,3rem);letter-spacing:-.047em;line-height:1.12}.section-intro{max-width:300px;font-size:1rem;color:var(--muted);line-height:1.7}.project{border:1px solid var(--line);margin-top:26px;background:var(--panel)}.project-featured{border-top:2px solid var(--accent)}.project-topline{display:flex;align-items:center;gap:16px;margin:0 36px;padding:22px 0;border-bottom:1px solid var(--line)}.project-number{color:var(--accent);font-family:var(--mono);font-size:.8125rem}.project-topline .eyebrow{font-size:.75rem}.project-label{margin-left:auto;color:var(--muted);font-family:var(--mono);font-size:.75rem}.status-tag{font-family:var(--mono);font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--accent);color:var(--accent);padding:2px 8px}.project-grid{display:grid;grid-template-columns:1fr 1fr;gap:46px;padding:40px 36px}.project-copy h3{font-size:2.25rem;line-height:1.14;letter-spacing:-.045em;margin-bottom:22px}.project-featured h3{font-size:3.5rem;margin-bottom:16px}.project-subtitle{font-size:1.3rem!important;color:var(--text)!important;line-height:1.45!important;margin-bottom:22px}.project-copy>p{font-size:1rem;color:#b9c0b8;line-height:1.7;margin-top:13px}.project-copy a{text-decoration:underline;text-decoration-color:#596253;text-underline-offset:5px}.project-copy a:hover{text-decoration-color:var(--accent)}.contribution{margin-top:24px}.contribution p{font-size:.875rem;color:#c3cac2;margin-top:6px;line-height:1.65}.architecture{align-self:center;border:1px solid #3e463f;background:#131713;padding:23px 22px 20px}.diagram-caption{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.75rem;color:var(--muted)}.diagram-index{color:#848f84}.channel-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:37px}.channel-grid>span{text-align:center;background:#232a23;border:1px solid #3a453a;padding:9px 2px;font-size:.75rem;color:#d3d9d0;overflow-wrap:anywhere}.diagram-connectors{height:50px;background:linear-gradient(#4b584a,#4b584a) 50% 100%/1px 20px no-repeat;position:relative}.diagram-connectors:before{content:"";position:absolute;left:9%;right:9%;top:0;height:30px;border:1px solid #4b584a;border-top:0}.diagram-connectors:after{content:"";position:absolute;left:50%;height:30px;border-left:1px solid #4b584a}.agentix-node{border:1px solid #616e5b;padding:20px 16px;display:flex;align-items:center;gap:14px;background:#20291e}.node-mark{font-family:var(--mono);font-size:1.8rem;letter-spacing:-.1em;color:#d1dfc4}.node-mark>span{color:var(--accent)}.agentix-node>div{display:flex;flex-direction:column}.agentix-node strong{font-size:1.25rem;line-height:1.4;letter-spacing:-.02em;font-weight:500}.agentix-node>div>span{font-size:.75rem;color:#b7c2b1}.node-chip{font-family:var(--mono);font-size:.75rem;margin-left:auto;color:#c1ceb8}.diagram-foot{font-size:.75rem;text-align:center;color:#a3b29c;margin-top:20px}.project-result{padding:20px 36px;display:grid;grid-template-columns:80px 1fr;gap:22px;border-top:1px solid var(--line)}.project-result>.small-label{padding-top:3px;color:var(--accent)}.project-result p{font-size:1rem;line-height:1.6}.case-detail{border-top:1px solid var(--line)}.case-detail summary{display:flex;align-items:center;justify-content:space-between;list-style:none;cursor:pointer;font-size:.875rem;padding:19px 36px;color:#b8c0b7}.case-detail summary::-webkit-details-marker{display:none}.case-detail summary:hover{color:var(--text);background:#1e241f}.expand-icon{width:12px;height:12px;position:relative;flex-shrink:0}.expand-icon:before,.expand-icon:after{content:"";position:absolute;background:currentColor;top:5px;left:0;width:12px;height:1px}.expand-icon:after{transform:rotate(90deg)}details[open] .expand-icon:after{transform:rotate(0)}.detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px;padding:10px 36px 30px}.detail-grid h4{font-size:1rem;color:var(--text);margin-bottom:9px}.detail-grid p{font-size:1rem;line-height:1.7;color:var(--muted)}.voice-panel{align-self:center;padding:26px 28px;background:#121613;border:1px solid #343e35}.integration-list{list-style:none;margin-top:13px}.integration-list li{display:flex;flex-direction:column;gap:2px;padding:12px 0;border-bottom:1px solid var(--line)}.integration-list li:last-child{border-bottom:0}.integration-list span{font-size:.75rem;color:var(--muted)}.integration-list strong{font-size:1rem;font-weight:400;color:#d7dfd5}.panel-note{font-size:.8125rem;line-height:1.6;color:var(--muted);margin-top:20px}.outcome-panel{align-self:center;background:#232522;border:1px solid #40453c;padding:26px 30px}.before{margin-top:20px;display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #4a5144;padding-bottom:13px;color:var(--muted)}.before span,.after>span{font-size:.8125rem}.before strong{font-size:1.45rem;font-weight:400;letter-spacing:-.04em}.after{margin-top:15px}.after>span{color:#c6d1bc}.after strong{display:flex;justify-content:space-between;align-items:center;color:#e0eacb;font-size:4.4rem;line-height:1.25;letter-spacing:-.06em;font-weight:400}.after strong span{font-size:3rem;color:#b7c59c}.work-note{font-size:.8125rem;color:var(--muted);margin-top:24px;max-width:690px}.experience-section{background:#edf0e9;color:#1b241c;--muted:#54604f;--line:#c9d1c3;--accent:#a52e2b;--text:#1b241c}.experience-section .section{padding-bottom:85px}.experience-layout{display:grid;grid-template-columns:1fr 2fr;gap:80px;border-top:1px solid var(--line);padding-top:38px}.large-number{font-size:7rem;letter-spacing:-.08em;line-height:1.05;font-weight:400}.large-number span{font-size:3.5rem;color:#7d8974;vertical-align:top;line-height:1.2}.experience-years{font-size:1rem;margin-top:8px}.experience-aside{max-width:235px;font-size:1rem;line-height:1.7;color:var(--muted);margin-top:22px}.timeline article{padding:0 0 29px 28px;border-left:1px solid #aebaa5;position:relative}.timeline article:before{content:"";position:absolute;left:-4px;top:6px;width:7px;height:7px;background:#6d7d60}.timeline article+article{padding-top:24px;border-top:1px solid var(--line)}.timeline article+article:before{top:30px}.timeline article:last-child{padding-bottom:0}.timeline-label{font-size:.75rem;color:var(--muted);margin-bottom:8px}.timeline h3{font-size:1.4rem;line-height:1.35;letter-spacing:-.025em}.timeline-subtitle{font-size:.875rem;color:var(--muted);margin-top:5px;margin-bottom:15px}.timeline ul{padding-left:18px}.timeline li,.timeline article>p:not(.timeline-subtitle){font-size:1rem;color:#414d3d;line-height:1.7}.timeline li+li{margin-top:8px}.fit-table{width:100%;border-collapse:collapse;text-align:left;table-layout:fixed}.fit-table th,.fit-table td{padding:23px 18px 23px 0;border-bottom:1px solid var(--line);vertical-align:top}.fit-table thead th{font-family:var(--mono);font-size:.75rem;font-weight:400;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding-top:0;padding-bottom:17px}.fit-table th:first-child{width:30%}.fit-table th:nth-child(2){width:48%}.fit-table th:nth-child(3){width:22%}.fit-table tbody th{font-weight:400;font-size:1rem;line-height:1.65}.fit-table tbody td{font-size:1rem;color:var(--muted);line-height:1.65}.fit-table td:last-child{padding-right:0}.fit-table a{font-size:.875rem;color:#e1e8da;text-decoration:underline;text-decoration-color:#596253;text-underline-offset:5px}.fit-table a:hover{text-decoration-color:var(--accent)}.fit-table a span{padding-left:5px;color:var(--accent)}.fit-group{font-family:var(--mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)!important;padding-top:34px!important}.skills-line{display:grid;grid-template-columns:230px 1fr;gap:30px;padding:36px 0}.skills-line .small-label{padding-top:6px}.skills-line ul{display:flex;list-style:none;gap:9px;flex-wrap:wrap}.skills-line li{font-size:.8125rem;color:#bec9b8;border:1px solid #3e4839;padding:4px 11px}.closing{margin-top:58px;border-top:1px solid var(--line);padding-top:45px;display:flex;justify-content:space-between;gap:50px}.closing-mark{font-size:6rem;font-weight:600;letter-spacing:-.095em;line-height:1;color:#53624a}.closing .eyebrow{margin-bottom:23px}.closing>div>p:last-child{font-size:clamp(1.6rem,3vw,2.5rem);letter-spacing:-.045em;line-height:1.35}.closing>div>p:last-child span{color:var(--muted)}.footer{border-top:1px solid var(--line)}.footer-inner{display:flex;align-items:center;justify-content:space-between;padding-top:28px;padding-bottom:30px;gap:30px;font-size:.875rem;flex-wrap:wrap}.footer p>span{display:block;font-size:.75rem;color:var(--muted);margin-top:3px}.footer-links{display:flex;gap:22px;flex-wrap:wrap}.footer a{font-size:.8125rem;color:var(--muted)}.footer a:hover{color:var(--text)}.footer a span{padding-left:10px;color:var(--text)}
-@media(min-width:1500px){.shell{max-width:1360px}.hero-grid{gap:100px;grid-template-columns:minmax(0,1fr) 300px}h1{font-size:6.7rem}.hero{padding-top:55px}.hero-grid{padding-top:64px;padding-bottom:70px}}
-@media(max-width:1000px){.shell{padding-left:32px;padding-right:32px}.hero-grid{gap:40px;grid-template-columns:minmax(0,1fr) 220px}h1{font-size:4.7rem}.evidence-strip>div{padding:0 20px}.evidence-strip strong{font-size:1.5rem}.evidence-strip strong span{font-size:1rem}.section-heading{gap:30px}.section-intro{max-width:270px}.project-grid{gap:26px;padding:30px 26px}.project-topline{margin:0 26px}.project-copy h3{font-size:1.95rem}.project-featured h3{font-size:3rem}.project-subtitle{font-size:1.2rem!important}.architecture{padding:20px 14px}.agentix-node{gap:10px;padding:16px 12px;flex-wrap:wrap}.node-chip{margin-left:0;width:100%;padding-left:47px}.project-result{padding-left:26px;padding-right:26px}.case-detail summary{padding-left:26px;padding-right:26px}.detail-grid{padding-left:26px;padding-right:26px;gap:22px}.experience-layout{gap:45px}.skills-line{grid-template-columns:190px 1fr}.outcome-panel{padding:22px}.voice-panel{padding:22px}}
-@media(max-width:760px){html{scroll-padding-top:110px}.shell{padding-left:24px;padding-right:24px}.header-inner{height:auto;min-height:78px;padding-top:15px;padding-bottom:15px;gap:12px;flex-wrap:wrap}.brand-name{display:none}nav{gap:22px;font-size:.8125rem}.hero{padding-top:30px}.hero-kicker{align-items:flex-start}.hero-kicker .location{max-width:125px;text-align:right;font-size:.75rem}.hero-kicker .eyebrow{font-size:.75rem}.hero-grid{grid-template-columns:1fr;gap:35px;padding-top:35px;padding-bottom:35px}h1{font-size:clamp(3.3rem,9vw,4.9rem)}.intro{max-width:480px;margin-top:25px;font-size:1.0625rem}.hero-note{border-top:1px solid var(--line);padding-top:25px;display:grid;grid-template-columns:1fr 1fr;column-gap:30px;align-items:start}.note-label{grid-column:1/-1;margin-bottom:8px}.target-company{margin-top:5px;font-size:2rem}.target-role{margin-top:7px;font-size:.8125rem}.note-divider,.note-copy{display:none}.focus-list{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:5px 20px;margin-top:15px;font-size:.8125rem}.evidence-strip{grid-template-columns:1fr 1fr;padding:23px 0}.evidence-strip>div:nth-child(2){padding-right:0}.evidence-strip>div:last-child{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);padding:20px 0 0;margin-top:20px}.evidence-strip strong{font-size:1.7rem}.evidence-strip strong span{font-size:1rem}.evidence-strip p{font-size:.75rem}.section{padding-top:68px;padding-bottom:68px}.section-heading{display:block;margin-bottom:30px}.section-heading .eyebrow{margin-bottom:20px}h2{font-size:2.3rem}.section-intro{margin-top:20px;max-width:480px}.project-topline{margin:0 22px;flex-wrap:wrap;gap:10px;padding:19px 0}.project-label{margin-left:auto;font-size:.75rem}.project-topline .eyebrow{font-size:.75rem}.project-grid{grid-template-columns:1fr;gap:28px;padding:28px 22px}.project-copy h3{font-size:2.1rem}.project-featured h3{font-size:3rem}.project-subtitle{font-size:1.3rem!important}.contribution{margin-top:20px}.architecture{padding:23px 18px}.agentix-node{flex-wrap:nowrap}.node-chip{margin-left:auto;width:auto;padding-left:0}.project-result{grid-template-columns:1fr;gap:7px;padding:20px 22px}.project-result p{font-size:1rem}.case-detail summary{padding:18px 22px}.detail-grid{grid-template-columns:1fr;gap:22px;padding:7px 22px 26px}.voice-panel{padding:23px}.integration-list li{flex-direction:row;align-items:baseline;justify-content:space-between;gap:20px}.integration-list span{max-width:110px}.integration-list strong{text-align:right}.outcome-panel{padding:24px}.after strong{font-size:4.5rem}.experience-section .section{padding-bottom:68px}.experience-layout{grid-template-columns:1fr;gap:35px;padding-top:30px}.experience-intro{display:grid;grid-template-columns:110px 1fr;column-gap:22px;align-items:center}.large-number{font-size:4.5rem;grid-row:1/3}.large-number span{font-size:2.5rem}.experience-years{font-size:1rem;max-width:180px;margin:0}.experience-aside{grid-column:2;margin:8px 0 0;font-size:.875rem;max-width:none}.timeline article{padding-left:22px}.fit-table{table-layout:auto}.fit-table th:first-child{width:40%}.fit-table th:nth-child(2){width:60%}.fit-table th:nth-child(3),.fit-table td:nth-child(3){display:none}.fit-table th,.fit-table td{padding:20px 16px 20px 0}.fit-table td:nth-child(2){padding-right:0}.fit-table tbody td,.fit-table tbody th{font-size:1rem}.fit-table thead th{font-size:.75rem}.skills-line{grid-template-columns:1fr;gap:15px;padding-top:26px}.skills-line li{font-size:.75rem}.closing{margin-top:28px;padding-top:35px;gap:24px}.closing-mark{font-size:3rem}.closing>div{max-width:300px}.closing .eyebrow{font-size:.75rem}.closing>div>p:last-child{font-size:1.65rem}.footer-inner{padding-top:24px;padding-bottom:24px}.footer p>span{max-width:175px}.work-note{font-size:.75rem}}
-@media(max-width:380px){.shell{padding-left:18px;padding-right:18px}nav{gap:16px;font-size:.75rem}h1{font-size:3rem}.project-topline{margin:0 18px}.project-label{width:100%;padding-left:26px}.project-grid{padding-left:18px;padding-right:18px}.architecture{padding:20px 12px}.node-chip{font-size:.75rem}.agentix-node{gap:10px}.node-mark{font-size:1.5rem}.agentix-node>div>span{font-size:.75rem}.channel-grid>span{font-size:.75rem}.closing-mark{display:none}.closing>div{max-width:none}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
-@media print{html{scroll-padding-top:0}.header,.skip,.primary-link,.case-detail{display:none}body{background:white;color:#111;font-size:10pt}.shell{max-width:none;padding:0}.hero{padding:0}.hero-grid{padding:20px 0;grid-template-columns:1fr 200px;gap:30px}h1{font-size:40pt}h1>span,.intro,.eyebrow,.small-label,.location,.target-role,.note-copy,.focus-list,.evidence-strip p,.project-copy>p,.contribution p,.section-intro,.work-note,.fit-table td,.skills-line li{color:#444!important}.section{padding:30px 0}.section-heading{margin-bottom:20px}h2{font-size:26pt}.project{background:white;border:1px solid #aaa;break-inside:avoid}.project-grid{padding:20px;gap:25px}.project-topline{margin:0 20px}.project-copy h3{font-size:24pt}.project-result{padding:15px 20px}.architecture,.voice-panel,.outcome-panel{color:#111;background:#f2f4f0}.agentix-node{background:#e2e8db}.agentix-node strong,.agentix-node>div>span,.node-chip,.node-mark,.diagram-foot,.diagram-caption,.integration-list strong,.panel-note,.after strong,.before,.after>span{color:#333}.channel-grid>span{background:#edf0e9;color:#333}.experience-section{background:white}.experience-layout{gap:30px}.fit-table a{color:#111}.closing{margin-top:20px}.closing-mark{color:#666}.closing>div>p:last-child span{color:#444}.footer{margin-top:20px}.footer p>span,.footer a{color:#444}}
+    @charset "UTF-8";
 
-/* Keep enlarged text and long labels within their containers. */
-h1,h2,h3,.fit-table th,.fit-table td{overflow-wrap:anywhere}nav{flex-wrap:wrap;row-gap:8px}.hero-grid>*{min-width:0}
-</style>
+    :root {
+      color-scheme: dark;
+      --bg: #111312;
+      --panel: #181b19;
+      --text: #f3f4f0;
+      --muted: #a8aea7;
+      --accent: #fa625c;
+      --line: #343a35;
+      --font: Arial, Helvetica, sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 110px
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 1rem;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none
+    }
+
+    button,
+    a,
+    summary {
+      -webkit-tap-highlight-color: transparent
+    }
+
+    a:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 6px
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: var(--bg)
+    }
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4 {
+      margin: 0
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-weight: 500
+    }
+
+    ul {
+      margin: 0;
+      padding: 0
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: .875em;
+      overflow-wrap: anywhere
+    }
+
+    .shell {
+      max-width: 1240px;
+      padding-left: 48px;
+      padding-right: 48px;
+      margin: 0 auto
+    }
+
+    .eyebrow,
+    .small-label,
+    .timeline-label {
+      font-family: var(--mono);
+      font-size: .75rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 400
+    }
+
+    .eyebrow {
+      color: var(--muted)
+    }
+
+    .small-label {
+      color: var(--muted)
+    }
+
+    .skip {
+      position: fixed;
+      top: -100px;
+      left: 20px;
+      z-index: 10;
+      background: var(--text);
+      color: var(--bg);
+      padding: 12px 20px
+    }
+
+    .skip:focus {
+      top: 12px
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 1px solid var(--line);
+      background: rgba(17, 19, 18, .96)
+    }
+
+    .header-inner {
+      height: 84px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px
+    }
+
+    .monogram {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: -.07em
+    }
+
+    .monogram span {
+      color: var(--accent)
+    }
+
+    .brand-name {
+      font-size: .875rem;
+      font-weight: 500
+    }
+
+    nav {
+      display: flex;
+      gap: 34px;
+      font-size: .875rem
+    }
+
+    nav a {
+      color: #c4cac3;
+      transition: color .2s
+    }
+
+    nav a:hover,
+    nav a[aria-current="location"] {
+      color: var(--text)
+    }
+
+    nav a[aria-current="location"] {
+      text-decoration: underline;
+      text-underline-offset: 8px;
+      text-decoration-color: var(--accent)
+    }
+
+    nav a:last-child span {
+      color: var(--accent);
+      padding-left: 7px
+    }
+
+    .hero {
+      padding-top: 44px
+    }
+
+    .hero-kicker {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px
+    }
+
+    .location {
+      font-size: .75rem;
+      font-family: var(--mono);
+      color: var(--muted)
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 260px;
+      gap: 74px;
+      padding: 52px 0 58px
+    }
+
+    h1 {
+      font-size: clamp(3.7rem, 7.2vw, 6.05rem);
+      line-height: 1.025;
+      letter-spacing: -.065em;
+      font-weight: 500
+    }
+
+    h1>span {
+      color: var(--muted)
+    }
+
+    .intro {
+      max-width: 520px;
+      font-size: 1.125rem;
+      line-height: 1.65;
+      color: #c4cac3;
+      margin-top: 30px
+    }
+
+    .primary-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 44px;
+      font-size: .875rem;
+      font-weight: 600;
+      background: var(--text);
+      color: #111312;
+      padding: 13px 19px;
+      margin-top: 30px;
+      transition: background .2s, transform .2s
+    }
+
+    .primary-link:hover {
+      background: var(--accent);
+      transform: translateY(-2px)
+    }
+
+    .primary-link span {
+      font-size: 1.3rem
+    }
+
+    .hero-note {
+      padding-top: 12px;
+      align-self: end;
+      padding-bottom: 4px
+    }
+
+    .note-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      font-size: .75rem
+    }
+
+    .red-rule {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--accent)
+    }
+
+    .target-company {
+      font-size: 2.5rem;
+      line-height: 1.25;
+      letter-spacing: -.05em;
+      margin-top: 20px
+    }
+
+    .target-role {
+      font-size: .875rem;
+      line-height: 1.7;
+      color: var(--muted);
+      margin-top: 9px
+    }
+
+    .note-divider {
+      height: 1px;
+      background: var(--line);
+      margin: 28px 0
+    }
+
+    .note-copy {
+      font-size: 1.05rem;
+      line-height: 1.6
+    }
+
+    .focus-list {
+      list-style: none;
+      margin-top: 20px;
+      font-size: .875rem;
+      color: var(--muted)
+    }
+
+    .focus-list li {
+      padding: 5px 0
+    }
+
+    .evidence-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.2fr;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 28px 0
+    }
+
+    .evidence-strip>div {
+      padding: 0 28px;
+      border-left: 1px solid var(--line)
+    }
+
+    .evidence-strip>div:first-child {
+      padding-left: 0;
+      border: 0
+    }
+
+    .evidence-strip>div:last-child {
+      padding-right: 0
+    }
+
+    .evidence-strip strong {
+      font-size: 1.8rem;
+      font-weight: 500;
+      letter-spacing: -.045em;
+      line-height: 1.3
+    }
+
+    .evidence-strip strong span {
+      font-size: 1.125rem;
+      color: var(--muted);
+      letter-spacing: -.025em
+    }
+
+    .evidence-strip strong .metric-arrow {
+      color: var(--accent);
+      padding: 0 8px;
+      font-size: 1.6rem
+    }
+
+    .evidence-strip p {
+      font-size: .8125rem;
+      color: var(--muted);
+      margin-top: 9px
+    }
+
+    .section {
+      padding-top: 102px;
+      padding-bottom: 100px
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 52px;
+      margin-bottom: 46px
+    }
+
+    .section-heading .eyebrow {
+      margin-bottom: 24px;
+      color: var(--accent)
+    }
+
+    h2 {
+      font-size: clamp(2.15rem, 3.5vw, 3rem);
+      letter-spacing: -.047em;
+      line-height: 1.12
+    }
+
+    .section-intro {
+      max-width: 300px;
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.7
+    }
+
+    .project {
+      border: 1px solid var(--line);
+      margin-top: 26px;
+      background: var(--panel)
+    }
+
+    .project-featured {
+      border-top: 2px solid var(--accent)
+    }
+
+    .project-topline {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 0 36px;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .project-number {
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: .8125rem
+    }
+
+    .project-topline .eyebrow {
+      font-size: .75rem
+    }
+
+    .project-label {
+      margin-left: auto;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .75rem
+    }
+
+    .status-tag {
+      font-family: var(--mono);
+      font-size: .6875rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 2px 8px
+    }
+
+    .project-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 46px;
+      padding: 40px 36px
+    }
+
+    .project-copy h3 {
+      font-size: 2.25rem;
+      line-height: 1.14;
+      letter-spacing: -.045em;
+      margin-bottom: 22px
+    }
+
+    .project-featured h3 {
+      font-size: 3.5rem;
+      margin-bottom: 16px
+    }
+
+    .project-subtitle {
+      font-size: 1.3rem !important;
+      color: var(--text) !important;
+      line-height: 1.45 !important;
+      margin-bottom: 22px
+    }
+
+    .project-copy>p {
+      font-size: 1rem;
+      color: #b9c0b8;
+      line-height: 1.7;
+      margin-top: 13px
+    }
+
+    .project-copy a {
+      text-decoration: underline;
+      text-decoration-color: #596253;
+      text-underline-offset: 5px
+    }
+
+    .project-copy a:hover {
+      text-decoration-color: var(--accent)
+    }
+
+    .contribution {
+      margin-top: 24px
+    }
+
+    .contribution p {
+      font-size: .875rem;
+      color: #c3cac2;
+      margin-top: 6px;
+      line-height: 1.65
+    }
+
+    .architecture {
+      align-self: center;
+      border: 1px solid #3e463f;
+      background: #131713;
+      padding: 23px 22px 20px
+    }
+
+    .diagram-caption {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: var(--muted)
+    }
+
+    .diagram-index {
+      color: #848f84
+    }
+
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 5px;
+      margin-top: 37px
+    }
+
+    .channel-grid>span {
+      text-align: center;
+      background: #232a23;
+      border: 1px solid #3a453a;
+      padding: 9px 2px;
+      font-size: .75rem;
+      color: #d3d9d0;
+      overflow-wrap: anywhere
+    }
+
+    .diagram-connectors {
+      height: 50px;
+      background: linear-gradient(#4b584a, #4b584a) 50% 100%/1px 20px no-repeat;
+      position: relative
+    }
+
+    .diagram-connectors:before {
+      content: "";
+      position: absolute;
+      left: 9%;
+      right: 9%;
+      top: 0;
+      height: 30px;
+      border: 1px solid #4b584a;
+      border-top: 0
+    }
+
+    .diagram-connectors:after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      height: 30px;
+      border-left: 1px solid #4b584a
+    }
+
+    .agentix-node {
+      border: 1px solid #616e5b;
+      padding: 20px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #20291e
+    }
+
+    .node-mark {
+      font-family: var(--mono);
+      font-size: 1.8rem;
+      letter-spacing: -.1em;
+      color: #d1dfc4
+    }
+
+    .node-mark>span {
+      color: var(--accent)
+    }
+
+    .agentix-node>div {
+      display: flex;
+      flex-direction: column
+    }
+
+    .agentix-node strong {
+      font-size: 1.25rem;
+      line-height: 1.4;
+      letter-spacing: -.02em;
+      font-weight: 500
+    }
+
+    .agentix-node>div>span {
+      font-size: .75rem;
+      color: #b7c2b1
+    }
+
+    .node-chip {
+      font-family: var(--mono);
+      font-size: .75rem;
+      margin-left: auto;
+      color: #c1ceb8
+    }
+
+    .diagram-foot {
+      font-size: .75rem;
+      text-align: center;
+      color: #a3b29c;
+      margin-top: 20px
+    }
+
+    .project-result {
+      padding: 20px 36px;
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 22px;
+      border-top: 1px solid var(--line)
+    }
+
+    .project-result>.small-label {
+      padding-top: 3px;
+      color: var(--accent)
+    }
+
+    .project-result p {
+      font-size: 1rem;
+      line-height: 1.6
+    }
+
+    .case-detail {
+      border-top: 1px solid var(--line)
+    }
+
+    .case-detail summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      list-style: none;
+      cursor: pointer;
+      font-size: .875rem;
+      padding: 19px 36px;
+      color: #b8c0b7
+    }
+
+    .case-detail summary::-webkit-details-marker {
+      display: none
+    }
+
+    .case-detail summary:hover {
+      color: var(--text);
+      background: #1e241f
+    }
+
+    .expand-icon {
+      width: 12px;
+      height: 12px;
+      position: relative;
+      flex-shrink: 0
+    }
+
+    .expand-icon:before,
+    .expand-icon:after {
+      content: "";
+      position: absolute;
+      background: currentColor;
+      top: 5px;
+      left: 0;
+      width: 12px;
+      height: 1px
+    }
+
+    .expand-icon:after {
+      transform: rotate(90deg)
+    }
+
+    details[open] .expand-icon:after {
+      transform: rotate(0)
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 30px;
+      padding: 10px 36px 30px
+    }
+
+    .detail-grid h4 {
+      font-size: 1rem;
+      color: var(--text);
+      margin-bottom: 9px
+    }
+
+    .detail-grid p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--muted)
+    }
+
+    .voice-panel {
+      align-self: center;
+      padding: 26px 28px;
+      background: #121613;
+      border: 1px solid #343e35
+    }
+
+    .integration-list {
+      list-style: none;
+      margin-top: 13px
+    }
+
+    .integration-list li {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .integration-list li:last-child {
+      border-bottom: 0
+    }
+
+    .integration-list span {
+      font-size: .75rem;
+      color: var(--muted)
+    }
+
+    .integration-list strong {
+      font-size: 1rem;
+      font-weight: 400;
+      color: #d7dfd5
+    }
+
+    .panel-note {
+      font-size: .8125rem;
+      line-height: 1.6;
+      color: var(--muted);
+      margin-top: 20px
+    }
+
+    .outcome-panel {
+      align-self: center;
+      background: #232522;
+      border: 1px solid #40453c;
+      padding: 26px 30px
+    }
+
+    .before {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid #4a5144;
+      padding-bottom: 13px;
+      color: var(--muted)
+    }
+
+    .before span,
+    .after>span {
+      font-size: .8125rem
+    }
+
+    .before strong {
+      font-size: 1.45rem;
+      font-weight: 400;
+      letter-spacing: -.04em
+    }
+
+    .after {
+      margin-top: 15px
+    }
+
+    .after>span {
+      color: #c6d1bc
+    }
+
+    .after strong {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #e0eacb;
+      font-size: 4.4rem;
+      line-height: 1.25;
+      letter-spacing: -.06em;
+      font-weight: 400
+    }
+
+    .after strong span {
+      font-size: 3rem;
+      color: #b7c59c
+    }
+
+    .work-note {
+      font-size: .8125rem;
+      color: var(--muted);
+      margin-top: 24px;
+      max-width: 690px
+    }
+
+    .experience-section {
+      background: #edf0e9;
+      color: #1b241c;
+      --muted: #54604f;
+      --line: #c9d1c3;
+      --accent: #a52e2b;
+      --text: #1b241c
+    }
+
+    .experience-section .section {
+      padding-bottom: 85px
+    }
+
+    .experience-layout {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 80px;
+      border-top: 1px solid var(--line);
+      padding-top: 38px
+    }
+
+    .large-number {
+      font-size: 7rem;
+      letter-spacing: -.08em;
+      line-height: 1.05;
+      font-weight: 400
+    }
+
+    .large-number span {
+      font-size: 3.5rem;
+      color: #7d8974;
+      vertical-align: top;
+      line-height: 1.2
+    }
+
+    .experience-years {
+      font-size: 1rem;
+      margin-top: 8px
+    }
+
+    .experience-aside {
+      max-width: 235px;
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--muted);
+      margin-top: 22px
+    }
+
+    .timeline article {
+      padding: 0 0 29px 28px;
+      border-left: 1px solid #aebaa5;
+      position: relative
+    }
+
+    .timeline article:before {
+      content: "";
+      position: absolute;
+      left: -4px;
+      top: 6px;
+      width: 7px;
+      height: 7px;
+      background: #6d7d60
+    }
+
+    .timeline article+article {
+      padding-top: 24px;
+      border-top: 1px solid var(--line)
+    }
+
+    .timeline article+article:before {
+      top: 30px
+    }
+
+    .timeline article:last-child {
+      padding-bottom: 0
+    }
+
+    .timeline-label {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-bottom: 8px
+    }
+
+    .timeline h3 {
+      font-size: 1.4rem;
+      line-height: 1.35;
+      letter-spacing: -.025em
+    }
+
+    .timeline-subtitle {
+      font-size: .875rem;
+      color: var(--muted);
+      margin-top: 5px;
+      margin-bottom: 15px
+    }
+
+    .timeline ul {
+      padding-left: 18px
+    }
+
+    .timeline li,
+    .timeline article>p:not(.timeline-subtitle) {
+      font-size: 1rem;
+      color: #414d3d;
+      line-height: 1.7
+    }
+
+    .timeline li+li {
+      margin-top: 8px
+    }
+
+    .fit-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      table-layout: fixed
+    }
+
+    .fit-table th,
+    .fit-table td {
+      padding: 23px 18px 23px 0;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top
+    }
+
+    .fit-table thead th {
+      font-family: var(--mono);
+      font-size: .75rem;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      padding-top: 0;
+      padding-bottom: 17px
+    }
+
+    .fit-table th:first-child {
+      width: 30%
+    }
+
+    .fit-table th:nth-child(2) {
+      width: 48%
+    }
+
+    .fit-table th:nth-child(3) {
+      width: 22%
+    }
+
+    .fit-table tbody th {
+      font-weight: 400;
+      font-size: 1rem;
+      line-height: 1.65
+    }
+
+    .fit-table tbody td {
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.65
+    }
+
+    .fit-table td:last-child {
+      padding-right: 0
+    }
+
+    .fit-table a {
+      font-size: .875rem;
+      color: #e1e8da;
+      text-decoration: underline;
+      text-decoration-color: #596253;
+      text-underline-offset: 5px
+    }
+
+    .fit-table a:hover {
+      text-decoration-color: var(--accent)
+    }
+
+    .fit-table a span {
+      padding-left: 5px;
+      color: var(--accent)
+    }
+
+    .fit-group {
+      font-family: var(--mono);
+      font-size: .75rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent) !important;
+      padding-top: 34px !important
+    }
+
+    .skills-line {
+      display: grid;
+      grid-template-columns: 230px 1fr;
+      gap: 30px;
+      padding: 36px 0
+    }
+
+    .skills-line .small-label {
+      padding-top: 6px
+    }
+
+    .skills-line ul {
+      display: flex;
+      list-style: none;
+      gap: 9px;
+      flex-wrap: wrap
+    }
+
+    .skills-line li {
+      font-size: .8125rem;
+      color: #bec9b8;
+      border: 1px solid #3e4839;
+      padding: 4px 11px
+    }
+
+    .closing {
+      margin-top: 58px;
+      border-top: 1px solid var(--line);
+      padding-top: 45px;
+      display: flex;
+      justify-content: space-between;
+      gap: 50px
+    }
+
+    .closing-mark {
+      font-size: 6rem;
+      font-weight: 600;
+      letter-spacing: -.095em;
+      line-height: 1;
+      color: #53624a
+    }
+
+    .closing .eyebrow {
+      margin-bottom: 23px
+    }
+
+    .closing>div>p:last-child {
+      font-size: clamp(1.6rem, 3vw, 2.5rem);
+      letter-spacing: -.045em;
+      line-height: 1.35
+    }
+
+    .closing>div>p:last-child span {
+      color: var(--muted)
+    }
+
+    .footer {
+      border-top: 1px solid var(--line)
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 28px;
+      padding-bottom: 30px;
+      gap: 30px;
+      font-size: .875rem;
+      flex-wrap: wrap
+    }
+
+    .footer p>span {
+      display: block;
+      font-size: .75rem;
+      color: var(--muted);
+      margin-top: 3px
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 22px;
+      flex-wrap: wrap
+    }
+
+    .footer a {
+      font-size: .8125rem;
+      color: var(--muted)
+    }
+
+    .footer a:hover {
+      color: var(--text)
+    }
+
+    .footer a span {
+      padding-left: 10px;
+      color: var(--text)
+    }
+
+    @media(min-width:1500px) {
+      .shell {
+        max-width: 1360px
+      }
+
+      .hero-grid {
+        gap: 100px;
+        grid-template-columns: minmax(0, 1fr) 300px
+      }
+
+      h1 {
+        font-size: 6.7rem
+      }
+
+      .hero {
+        padding-top: 55px
+      }
+
+      .hero-grid {
+        padding-top: 64px;
+        padding-bottom: 70px
+      }
+    }
+
+    @media(max-width:1000px) {
+      .shell {
+        padding-left: 32px;
+        padding-right: 32px
+      }
+
+      .hero-grid {
+        gap: 40px;
+        grid-template-columns: minmax(0, 1fr) 220px
+      }
+
+      h1 {
+        font-size: 4.7rem
+      }
+
+      .evidence-strip>div {
+        padding: 0 20px
+      }
+
+      .evidence-strip strong {
+        font-size: 1.5rem
+      }
+
+      .evidence-strip strong span {
+        font-size: 1rem
+      }
+
+      .section-heading {
+        gap: 30px
+      }
+
+      .section-intro {
+        max-width: 270px
+      }
+
+      .project-grid {
+        gap: 26px;
+        padding: 30px 26px
+      }
+
+      .project-topline {
+        margin: 0 26px
+      }
+
+      .project-copy h3 {
+        font-size: 1.95rem
+      }
+
+      .project-featured h3 {
+        font-size: 3rem
+      }
+
+      .project-subtitle {
+        font-size: 1.2rem !important
+      }
+
+      .architecture {
+        padding: 20px 14px
+      }
+
+      .agentix-node {
+        gap: 10px;
+        padding: 16px 12px;
+        flex-wrap: wrap
+      }
+
+      .node-chip {
+        margin-left: 0;
+        width: 100%;
+        padding-left: 47px
+      }
+
+      .project-result {
+        padding-left: 26px;
+        padding-right: 26px
+      }
+
+      .case-detail summary {
+        padding-left: 26px;
+        padding-right: 26px
+      }
+
+      .detail-grid {
+        padding-left: 26px;
+        padding-right: 26px;
+        gap: 22px
+      }
+
+      .experience-layout {
+        gap: 45px
+      }
+
+      .skills-line {
+        grid-template-columns: 190px 1fr
+      }
+
+      .outcome-panel {
+        padding: 22px
+      }
+
+      .voice-panel {
+        padding: 22px
+      }
+    }
+
+    @media(max-width:760px) {
+      html {
+        scroll-padding-top: 110px
+      }
+
+      .shell {
+        padding-left: 24px;
+        padding-right: 24px
+      }
+
+      .header-inner {
+        height: auto;
+        min-height: 78px;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        gap: 12px;
+        flex-wrap: wrap
+      }
+
+      .brand-name {
+        display: none
+      }
+
+      nav {
+        gap: 22px;
+        font-size: .8125rem
+      }
+
+      .hero {
+        padding-top: 30px
+      }
+
+      .hero-kicker {
+        align-items: flex-start
+      }
+
+      .hero-kicker .location {
+        max-width: 125px;
+        text-align: right;
+        font-size: .75rem
+      }
+
+      .hero-kicker .eyebrow {
+        font-size: .75rem
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 35px;
+        padding-top: 35px;
+        padding-bottom: 35px
+      }
+
+      h1 {
+        font-size: clamp(3.3rem, 9vw, 4.9rem)
+      }
+
+      .intro {
+        max-width: 480px;
+        margin-top: 25px;
+        font-size: 1.0625rem
+      }
+
+      .hero-note {
+        border-top: 1px solid var(--line);
+        padding-top: 25px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 30px;
+        align-items: start
+      }
+
+      .note-label {
+        grid-column: 1/-1;
+        margin-bottom: 8px
+      }
+
+      .target-company {
+        margin-top: 5px;
+        font-size: 2rem
+      }
+
+      .target-role {
+        margin-top: 7px;
+        font-size: .8125rem
+      }
+
+      .note-divider,
+      .note-copy {
+        display: none
+      }
+
+      .focus-list {
+        grid-column: 1/-1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px 20px;
+        margin-top: 15px;
+        font-size: .8125rem
+      }
+
+      .evidence-strip {
+        grid-template-columns: 1fr 1fr;
+        padding: 23px 0
+      }
+
+      .evidence-strip>div:nth-child(2) {
+        padding-right: 0
+      }
+
+      .evidence-strip>div:last-child {
+        grid-column: 1/-1;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        padding: 20px 0 0;
+        margin-top: 20px
+      }
+
+      .evidence-strip strong {
+        font-size: 1.7rem
+      }
+
+      .evidence-strip strong span {
+        font-size: 1rem
+      }
+
+      .evidence-strip p {
+        font-size: .75rem
+      }
+
+      .section {
+        padding-top: 68px;
+        padding-bottom: 68px
+      }
+
+      .section-heading {
+        display: block;
+        margin-bottom: 30px
+      }
+
+      .section-heading .eyebrow {
+        margin-bottom: 20px
+      }
+
+      h2 {
+        font-size: 2.3rem
+      }
+
+      .section-intro {
+        margin-top: 20px;
+        max-width: 480px
+      }
+
+      .project-topline {
+        margin: 0 22px;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 19px 0
+      }
+
+      .project-label {
+        margin-left: auto;
+        font-size: .75rem
+      }
+
+      .project-topline .eyebrow {
+        font-size: .75rem
+      }
+
+      .project-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+        padding: 28px 22px
+      }
+
+      .project-copy h3 {
+        font-size: 2.1rem
+      }
+
+      .project-featured h3 {
+        font-size: 3rem
+      }
+
+      .project-subtitle {
+        font-size: 1.3rem !important
+      }
+
+      .contribution {
+        margin-top: 20px
+      }
+
+      .architecture {
+        padding: 23px 18px
+      }
+
+      .agentix-node {
+        flex-wrap: nowrap
+      }
+
+      .node-chip {
+        margin-left: auto;
+        width: auto;
+        padding-left: 0
+      }
+
+      .project-result {
+        grid-template-columns: 1fr;
+        gap: 7px;
+        padding: 20px 22px
+      }
+
+      .project-result p {
+        font-size: 1rem
+      }
+
+      .case-detail summary {
+        padding: 18px 22px
+      }
+
+      .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 22px;
+        padding: 7px 22px 26px
+      }
+
+      .voice-panel {
+        padding: 23px
+      }
+
+      .integration-list li {
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 20px
+      }
+
+      .integration-list span {
+        max-width: 110px
+      }
+
+      .integration-list strong {
+        text-align: right
+      }
+
+      .outcome-panel {
+        padding: 24px
+      }
+
+      .after strong {
+        font-size: 4.5rem
+      }
+
+      .experience-section .section {
+        padding-bottom: 68px
+      }
+
+      .experience-layout {
+        grid-template-columns: 1fr;
+        gap: 35px;
+        padding-top: 30px
+      }
+
+      .experience-intro {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        column-gap: 22px;
+        align-items: center
+      }
+
+      .large-number {
+        font-size: 4.5rem;
+        grid-row: 1/3
+      }
+
+      .large-number span {
+        font-size: 2.5rem
+      }
+
+      .experience-years {
+        font-size: 1rem;
+        max-width: 180px;
+        margin: 0
+      }
+
+      .experience-aside {
+        grid-column: 2;
+        margin: 8px 0 0;
+        font-size: .875rem;
+        max-width: none
+      }
+
+      .timeline article {
+        padding-left: 22px
+      }
+
+      .fit-table {
+        table-layout: auto
+      }
+
+      .fit-table th:first-child {
+        width: 40%
+      }
+
+      .fit-table th:nth-child(2) {
+        width: 60%
+      }
+
+      .fit-table th:nth-child(3),
+      .fit-table td:nth-child(3) {
+        display: none
+      }
+
+      .fit-table th,
+      .fit-table td {
+        padding: 20px 16px 20px 0
+      }
+
+      .fit-table td:nth-child(2) {
+        padding-right: 0
+      }
+
+      .fit-table tbody td,
+      .fit-table tbody th {
+        font-size: 1rem
+      }
+
+      .fit-table thead th {
+        font-size: .75rem
+      }
+
+      .skills-line {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding-top: 26px
+      }
+
+      .skills-line li {
+        font-size: .75rem
+      }
+
+      .closing {
+        margin-top: 28px;
+        padding-top: 35px;
+        gap: 24px
+      }
+
+      .closing-mark {
+        font-size: 3rem
+      }
+
+      .closing>div {
+        max-width: 300px
+      }
+
+      .closing .eyebrow {
+        font-size: .75rem
+      }
+
+      .closing>div>p:last-child {
+        font-size: 1.65rem
+      }
+
+      .footer-inner {
+        padding-top: 24px;
+        padding-bottom: 24px
+      }
+
+      .footer p>span {
+        max-width: 175px
+      }
+
+      .work-note {
+        font-size: .75rem
+      }
+    }
+
+    @media(max-width:380px) {
+      .shell {
+        padding-left: 18px;
+        padding-right: 18px
+      }
+
+      nav {
+        gap: 16px;
+        font-size: .75rem
+      }
+
+      h1 {
+        font-size: 3rem
+      }
+
+      .project-topline {
+        margin: 0 18px
+      }
+
+      .project-label {
+        width: 100%;
+        padding-left: 26px
+      }
+
+      .project-grid {
+        padding-left: 18px;
+        padding-right: 18px
+      }
+
+      .architecture {
+        padding: 20px 12px
+      }
+
+      .node-chip {
+        font-size: .75rem
+      }
+
+      .agentix-node {
+        gap: 10px
+      }
+
+      .node-mark {
+        font-size: 1.5rem
+      }
+
+      .agentix-node>div>span {
+        font-size: .75rem
+      }
+
+      .channel-grid>span {
+        font-size: .75rem
+      }
+
+      .closing-mark {
+        display: none
+      }
+
+      .closing>div {
+        max-width: none
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      html {
+        scroll-behavior: auto
+      }
+
+      * {
+        transition: none !important
+      }
+    }
+
+    @media print {
+      html {
+        scroll-padding-top: 0
+      }
+
+      .header,
+      .skip,
+      .primary-link,
+      .case-detail {
+        display: none
+      }
+
+      body {
+        background: white;
+        color: #111;
+        font-size: 10pt
+      }
+
+      .shell {
+        max-width: none;
+        padding: 0
+      }
+
+      .hero {
+        padding: 0
+      }
+
+      .hero-grid {
+        padding: 20px 0;
+        grid-template-columns: 1fr 200px;
+        gap: 30px
+      }
+
+      h1 {
+        font-size: 40pt
+      }
+
+      h1>span,
+      .intro,
+      .eyebrow,
+      .small-label,
+      .location,
+      .target-role,
+      .note-copy,
+      .focus-list,
+      .evidence-strip p,
+      .project-copy>p,
+      .contribution p,
+      .section-intro,
+      .work-note,
+      .fit-table td,
+      .skills-line li {
+        color: #444 !important
+      }
+
+      .section {
+        padding: 30px 0
+      }
+
+      .section-heading {
+        margin-bottom: 20px
+      }
+
+      h2 {
+        font-size: 26pt
+      }
+
+      .project {
+        background: white;
+        border: 1px solid #aaa;
+        break-inside: avoid
+      }
+
+      .project-grid {
+        padding: 20px;
+        gap: 25px
+      }
+
+      .project-topline {
+        margin: 0 20px
+      }
+
+      .project-copy h3 {
+        font-size: 24pt
+      }
+
+      .project-result {
+        padding: 15px 20px
+      }
+
+      .architecture,
+      .voice-panel,
+      .outcome-panel {
+        color: #111;
+        background: #f2f4f0
+      }
+
+      .agentix-node {
+        background: #e2e8db
+      }
+
+      .agentix-node strong,
+      .agentix-node>div>span,
+      .node-chip,
+      .node-mark,
+      .diagram-foot,
+      .diagram-caption,
+      .integration-list strong,
+      .panel-note,
+      .after strong,
+      .before,
+      .after>span {
+        color: #333
+      }
+
+      .channel-grid>span {
+        background: #edf0e9;
+        color: #333
+      }
+
+      .experience-section {
+        background: white
+      }
+
+      .experience-layout {
+        gap: 30px
+      }
+
+      .fit-table a {
+        color: #111
+      }
+
+      .closing {
+        margin-top: 20px
+      }
+
+      .closing-mark {
+        color: #666
+      }
+
+      .closing>div>p:last-child span {
+        color: #444
+      }
+
+      .footer {
+        margin-top: 20px
+      }
+
+      .footer p>span,
+      .footer a {
+        color: #444
+      }
+    }
+
+    /* Keep enlarged text and long labels within their containers. */
+    h1,
+    h2,
+    h3,
+    .fit-table th,
+    .fit-table td {
+      overflow-wrap: anywhere
+    }
+
+    nav {
+      flex-wrap: wrap;
+      row-gap: 8px
+    }
+
+    .hero-grid>* {
+      min-width: 0
+    }
+  </style>
 </head>
+
 <body>
   <a class="skip" href="#main">Skip to content</a>
   <header class="header">
     <div class="shell header-inner">
-      <a class="brand" href="#top" aria-label="Nick Lackman, back to top"><span class="monogram" aria-hidden="true">NL<span>.</span></span><span class="brand-name">Nick Lackman</span></a>
+      <a class="brand" href="#top" aria-label="Nick Lackman, back to top"><span class="monogram"
+          aria-hidden="true">NL<span>.</span></span><span class="brand-name">Nick Lackman</span></a>
       <nav aria-label="Main navigation">
         <a href="#work">Selected work</a>
         <a href="#experience">Experience</a>
@@ -40,11 +1856,14 @@ h1,h2,h3,.fit-table th,.fit-table td{overflow-wrap:anywhere}nav{flex-wrap:wrap;r
 
   <main id="main">
     <section class="hero shell" id="top" aria-labelledby="hero-title">
-      <div class="hero-kicker"><span class="eyebrow">Staff Software Engineer · Agent Platform & Real-Time Systems</span><span class="location">Bremerton · Washington</span></div>
+      <div class="hero-kicker"><span class="eyebrow">Staff Software Engineer · Agent Platform & Real-Time
+          Systems</span><span class="location">Bremerton · Washington</span></div>
       <div class="hero-grid">
         <div>
           <h1 id="hero-title">Agent systems.<br><span>Built to be</span><br>built on.</h1>
-          <p class="intro">I’m Nick. I build the platform layer other engineers build their agents on: agent runtimes, real-time voice infrastructure, and the evaluation that tells a team whether an agent is actually any good.</p>
+          <p class="intro">I’m Nick. I build the platform layer other engineers build their agents on: agent runtimes,
+            real-time voice infrastructure, and the evaluation that tells a team whether an agent is actually any good.
+          </p>
           <a class="primary-link" href="#work">Explore selected work <span aria-hidden="true">↘</span></a>
         </div>
         <aside class="hero-note" aria-label="Application focus">
@@ -53,29 +1872,57 @@ h1,h2,h3,.fit-table th,.fit-table td{overflow-wrap:anywhere}nav{flex-wrap:wrap;r
           <p class="target-role">AI Platform<br>Software Engineer 5 · Agent Platform</p>
           <div class="note-divider"></div>
           <p class="note-copy">From the runtime and memory layer to the production systems and evals behind it.</p>
-          <ul class="focus-list" aria-label="Focus areas"><li>Agent runtime & deployment</li><li>Memory & sessions</li><li>Evaluation as a platform capability</li><li>Real-time systems</li></ul>
+          <ul class="focus-list" aria-label="Focus areas">
+            <li>Agent runtime & deployment</li>
+            <li>Memory & sessions</li>
+            <li>Evaluation as a platform capability</li>
+            <li>Real-time systems</li>
+          </ul>
         </aside>
       </div>
       <div class="evidence-strip" aria-label="Experience at a glance">
-        <div><strong>~6,000 <span>calls / day</span></strong><p>Production leasing AI voice product I helped take to GA</p></div>
-        <div><strong>−689 <span>ms</span></strong><p>Latency from one VAD change · controlled VAD study, p &lt; 0.001</p></div>
-        <div><strong>6 months <span class="metric-arrow">→</span> 1 day</strong><p>Environment creation with reusable Terraform stacks</p></div>
+        <div><strong>~6,000 <span>calls / day</span></strong>
+          <p>Production leasing AI voice product I helped take to GA</p>
+        </div>
+        <div><strong>−689 <span>ms</span></strong>
+          <p>Latency from one VAD change · controlled VAD study, p &lt; 0.001</p>
+        </div>
+        <div><strong>6 months <span class="metric-arrow">→</span> 1 day</strong>
+          <p>Environment creation with reusable Terraform stacks</p>
+        </div>
       </div>
     </section>
 
     <section class="work shell section" id="work" aria-labelledby="work-title">
-      <div class="section-heading"><div><p class="eyebrow">01 / Selected work</p><h2 id="work-title">The platform.<br>The systems it grew from.</h2></div><p class="section-intro">Shared agent infrastructure, the production systems that proved it out, and the evals that make quality visible.</p></div>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">01 / Selected work</p>
+          <h2 id="work-title">The platform.<br>The systems it grew from.</h2>
+        </div>
+        <p class="section-intro">Shared agent infrastructure, the production systems that proved it out, and the evals
+          that make quality visible.</p>
+      </div>
 
       <!-- 01 · Agent Platform (current work) -->
       <article class="project project-featured" aria-labelledby="platform-agent-title">
-        <div class="project-topline"><span class="project-number">01</span><span class="eyebrow">Internal agent platform</span><span class="status-tag">In progress · GA targeted Q1 2027</span><span class="project-label">Runtime / Release / Memory</span></div>
+        <div class="project-topline"><span class="project-number">01</span><span class="eyebrow">Internal agent
+            platform</span><span class="status-tag">In progress · GA targeted Q1 2027</span><span
+            class="project-label">Runtime / Release / Memory</span></div>
         <div class="project-grid">
           <div class="project-copy">
             <h3 id="platform-agent-title">Agent Platform</h3>
             <p class="project-subtitle">Teams own what an agent does.<br>The platform owns how it runs.</p>
-            <p>The mandate was a single sentence: teams need to build and ship an agent in four hours. Meanwhile, every product team building an agent was re-solving the same undifferentiated problems: voice transport, observability, sessions, and release. The Agent Platform separates agent configuration from agent execution so those problems get solved once.</p>
-            <p>Product teams own prompts, tools, and configuration. The platform owns execution, versioning, eval-gated release, and deployment. Release control is chosen per agent: low-risk agents can ship with a button click, while agents that handle payments and personal data use CI-gated releases.</p>
-            <div class="contribution"><span class="small-label">My role</span><p>Co-architect and co-owner of the platform. I own the real-time voice plane, sessions, and long-term memory (Mem0), and designed the code-first SDK and Google Enterprise Agent Platform paths.</p></div>
+            <p>The mandate was a single sentence: teams need to build and ship an agent in four hours. Meanwhile, every
+              product team building an agent was re-solving the same undifferentiated problems: voice transport,
+              observability, sessions, and release. The Agent Platform separates agent configuration from agent
+              execution so those problems get solved once.</p>
+            <p>Product teams own prompts, tools, and configuration. The platform owns execution, versioning, eval-gated
+              release, and deployment. Release control is chosen per agent: low-risk agents can ship with a button
+              click, while agents that handle payments and personal data use CI-gated releases.</p>
+            <div class="contribution"><span class="small-label">My role</span>
+              <p>Co-architect and co-owner of the platform. I own the real-time voice plane, sessions, and long-term
+                memory (Mem0), and designed the code-first SDK and Google Enterprise Agent Platform paths.</p>
+            </div>
           </div>
           <div class="voice-panel">
             <p class="small-label">Ownership contract</p>
@@ -87,123 +1934,508 @@ h1,h2,h3,.fit-table th,.fit-table td{overflow-wrap:anywhere}nav{flex-wrap:wrap;r
               <li><span>I own</span><strong>Voice plane · sessions · long-term memory</strong></li>
               <li><span>In build</span><strong>Agent identity · cost governance</strong></li>
             </ul>
-            <p class="panel-note">A deployment is a versioned release of agent configuration, evaluated before it reaches production.</p>
+            <p class="panel-note">A deployment is a versioned release of agent configuration, evaluated before it
+              reaches production.</p>
           </div>
         </div>
-        <div class="project-result"><span class="small-label">Status</span><p>Every RealPage product team was mandated onto the platform. GA is targeted for Q1 2027, with a roughly 30-engineer build-out staffed around the design.</p></div>
-        <details class="case-detail"><summary><span>Inside the work</span><span class="expand-icon" aria-hidden="true"></span></summary><div class="detail-grid"><div><h4>The design tension</h4><p>The platform supports button-click releases for low-risk agents and CI-gated releases for agents handling payments and personal data.</p></div><div><h4>Why it exists</h4><p>Product teams were rebuilding the same voice transport, tracing, sessions, and guardrails. A shared runtime gives them those capabilities once.</p></div><div><h4>Netflix relevance</h4><p>This is the role’s shape: a core primitive owned end to end, offered as a paved path, with the day-2 operations and release gates a non-deterministic system needs.</p></div></div></details>
+        <div class="project-result"><span class="small-label">Status</span>
+          <p>Every RealPage product team was mandated onto the platform. GA is targeted for Q1 2027, with a roughly
+            30-engineer build-out staffed around the design.</p>
+        </div>
+        <details class="case-detail">
+          <summary><span>Inside the work</span><span class="expand-icon" aria-hidden="true"></span></summary>
+          <div class="detail-grid">
+            <div>
+              <h4>The design tension</h4>
+              <p>The platform supports button-click releases for low-risk agents and CI-gated releases for agents
+                handling payments and personal data.</p>
+            </div>
+            <div>
+              <h4>Why it exists</h4>
+              <p>Product teams were rebuilding the same voice transport, tracing, sessions, and guardrails. A shared
+                runtime gives them those capabilities once.</p>
+            </div>
+            <div>
+              <h4>Netflix relevance</h4>
+              <p>This is the role’s shape: a core primitive owned end to end, offered as a paved path, with the day-2
+                operations and release gates a non-deterministic system needs.</p>
+            </div>
+          </div>
+        </details>
       </article>
 
       <!-- 02 · Code-first interaction plane -->
       <article class="project" aria-labelledby="codeplane-title">
-        <div class="project-topline"><span class="project-number">02</span><span class="eyebrow">Developer experience</span><span class="status-tag">Design path · in build</span><span class="project-label">SDK / GEAP</span></div>
-        <div class="project-grid"><div class="project-copy"><h3 id="codeplane-title">Meet engineers<br>in their own codebase.</h3><p>Product teams need a way to create and deploy agents in four hours, with a code-first path for engineers.</p><p>I designed the code-first SDK path alongside the platform’s versioned and eval-gated release process.</p><p>I also designed the Google Enterprise Agent Platform (GEAP) path as part of the Agent Platform architecture.</p><div class="contribution"><span class="small-label">My contribution</span><p>Code-first SDK and GEAP paths, plus the platform’s voice plane, sessions, and long-term memory.</p></div></div><div class="voice-panel"><p class="small-label">Two planes, portable runtime</p><ul class="integration-list"><li><span>Low-risk agents</span><strong>Button-click release</strong></li><li><span>Sensitive agents</span><strong>CI-gated release</strong></li><li><span>Shared</span><strong>Runtime · versioning · eval gates</strong></li><li><span>Designed paths</span><strong>Code-first SDK · GEAP</strong></li></ul><p class="panel-note">Release gates reflect each agent’s risk, including payments and personal data.</p></div></div>
-        <div class="project-result"><span class="small-label">Why it matters</span><p>Product teams can focus on agent behavior instead of rebuilding shared infrastructure.</p></div>
+        <div class="project-topline"><span class="project-number">02</span><span class="eyebrow">Developer
+            experience</span><span class="status-tag">Design path · in build</span><span class="project-label">SDK /
+            GEAP</span></div>
+        <div class="project-grid">
+          <div class="project-copy">
+            <h3 id="codeplane-title">Meet engineers<br>in their own codebase.</h3>
+            <p>Product teams need a way to create and deploy agents in four hours, with a code-first path for engineers.
+            </p>
+            <p>I designed the code-first SDK path alongside the platform’s versioned and eval-gated release process.</p>
+            <p>I also designed the Google Enterprise Agent Platform (GEAP) path as part of the Agent Platform
+              architecture.</p>
+            <div class="contribution"><span class="small-label">My contribution</span>
+              <p>Code-first SDK and GEAP paths, plus the platform’s voice plane, sessions, and long-term memory.</p>
+            </div>
+          </div>
+          <div class="voice-panel">
+            <p class="small-label">Two planes, portable runtime</p>
+            <ul class="integration-list">
+              <li><span>Low-risk agents</span><strong>Button-click release</strong></li>
+              <li><span>Sensitive agents</span><strong>CI-gated release</strong></li>
+              <li><span>Shared</span><strong>Runtime · versioning · eval gates</strong></li>
+              <li><span>Designed paths</span><strong>Code-first SDK · GEAP</strong></li>
+            </ul>
+            <p class="panel-note">Release gates reflect each agent’s risk, including payments and personal data.</p>
+          </div>
+        </div>
+        <div class="project-result"><span class="small-label">Why it matters</span>
+          <p>Product teams can focus on agent behavior instead of rebuilding shared infrastructure.</p>
+        </div>
       </article>
 
       <!-- 03 · Real-time voice -->
       <article class="project" aria-labelledby="voice-title">
-        <div class="project-topline"><span class="project-number">03</span><span class="eyebrow">Real-time agent systems</span><span class="project-label">Voice / Streaming / Latency</span></div>
-        <div class="project-grid"><div class="project-copy"><h3 id="voice-title">A voice agent is<br>a systems problem.</h3><p>I designed and built Agentix, the orchestration framework for RealPage’s production leasing AI voice agent, and led the product from prototype to GA. It currently handles about 6,000 calls a day, with 400,000+ units onboarded.</p><p>Profiling and optimizing the full audio pipeline cut median response time from about five seconds to about three seconds. In a separate 100-turn controlled study, local VAD reduced substantive-turn latency by 689 ms (22%; p &lt; 0.001, Cohen’s d = 1.04).</p><div class="contribution"><span class="small-label">My contribution</span><p>Agentix orchestration, telephony WebSocket integration, real-time audio, and latency diagnosis across the pipeline.</p></div></div><div class="voice-panel"><p class="small-label">Integration experience</p><ul class="integration-list"><li><span>Orchestration</span><strong>LangGraph · OpenAI Agents SDK</strong></li><li><span>Real-time interaction</span><strong>OpenAI Realtime API</strong></li><li><span>Telephony & transport</span><strong>WebSockets · WebRTC · SIP · gRPC</strong></li><li><span>Audio handling</span><strong>Opus · μ-law · PCM16</strong></li></ul><p class="panel-note">Audio formats, stream timing, interruptions, and service boundaries all shape the conversation.</p></div></div>
-        <div class="project-result"><span class="small-label">Result</span><p>A GA leasing AI voice product handling about 6,000 calls daily, with median response time reduced from about five to about three seconds.</p></div>
-        <details class="case-detail"><summary><span>Inside the work</span><span class="expand-icon" aria-hidden="true"></span></summary><div class="detail-grid"><div><h4>Integration work</h4><p>Built streaming audio and STT/TTS orchestration into Agentix.</p></div><div><h4>Systems detail</h4><p>Profiled caching, audio pacing and buffering, OpenAI Realtime API migration, service separation, uvloop, and logging on the audio hot path.</p></div><div><h4>Netflix relevance</h4><p>Operating a non-deterministic system under a hard latency budget, with live users on the other end and a measured way to know whether a change helped.</p></div></div></details>
+        <div class="project-topline"><span class="project-number">03</span><span class="eyebrow">Real-time agent
+            systems</span><span class="project-label">Voice / Streaming / Latency</span></div>
+        <div class="project-grid">
+          <div class="project-copy">
+            <h3 id="voice-title">A voice agent is<br>a systems problem.</h3>
+            <p>I designed and built Agentix, the orchestration framework for RealPage’s production leasing AI voice
+              agent, and led the product from prototype to GA. It currently handles about 6,000 calls a day, with
+              400,000+ units onboarded.</p>
+            <p>Profiling and optimizing the full audio pipeline cut median response time from about five seconds to
+              about three seconds. In a separate 100-turn controlled study, local VAD reduced substantive-turn latency
+              by 689 ms (22%; p &lt; 0.001, Cohen’s d = 1.04).</p>
+            <div class="contribution"><span class="small-label">My contribution</span>
+              <p>Agentix orchestration, telephony WebSocket integration, real-time audio, and latency diagnosis across
+                the pipeline.</p>
+            </div>
+          </div>
+          <div class="voice-panel">
+            <p class="small-label">Integration experience</p>
+            <ul class="integration-list">
+              <li><span>Orchestration</span><strong>LangGraph · OpenAI Agents SDK</strong></li>
+              <li><span>Real-time interaction</span><strong>OpenAI Realtime API</strong></li>
+              <li><span>Telephony & transport</span><strong>WebSockets · WebRTC · SIP · gRPC</strong></li>
+              <li><span>Audio handling</span><strong>Opus · μ-law · PCM16</strong></li>
+            </ul>
+            <p class="panel-note">Audio formats, stream timing, interruptions, and service boundaries all shape the
+              conversation.</p>
+          </div>
+        </div>
+        <div class="project-result"><span class="small-label">Result</span>
+          <p>A GA leasing AI voice product handling about 6,000 calls daily, with median response time reduced from
+            about five to about three seconds.</p>
+        </div>
+        <details class="case-detail">
+          <summary><span>Inside the work</span><span class="expand-icon" aria-hidden="true"></span></summary>
+          <div class="detail-grid">
+            <div>
+              <h4>Integration work</h4>
+              <p>Built streaming audio and STT/TTS orchestration into Agentix.</p>
+            </div>
+            <div>
+              <h4>Systems detail</h4>
+              <p>Profiled caching, audio pacing and buffering, OpenAI Realtime API migration, service separation,
+                uvloop, and logging on the audio hot path.</p>
+            </div>
+            <div>
+              <h4>Netflix relevance</h4>
+              <p>Operating a non-deterministic system under a hard latency budget, with live users on the other end and
+                a measured way to know whether a change helped.</p>
+            </div>
+          </div>
+        </details>
       </article>
 
       <!-- 04 · Evals and the improvement loop -->
 
       <article class="project" aria-labelledby="evals-title">
-        <div class="project-topline"><span class="project-number">04</span><span class="eyebrow">Evaluation infrastructure</span><span class="project-label">Evals / Quality signals / Replay</span></div>
-        <div class="project-grid"><div class="project-copy"><h3 id="evals-title">Evals for output<br>with no ground truth.</h3><p>Fixing latency raised a bigger question: why couldn’t we see when voice quality was getting worse? Voice output has no ground truth, so it needed reference-free quality signals.</p><p>I originated reference-free audio evals for voice output and brought them into production. The suite uses DNSMOS, turn-taking measures, and audio LLM-as-judge.</p><p>The Agent Platform also uses eval-gated versioned releases.</p><p>Public reference implementation: <a href="https://github.com/lackmannicholas/voice-evals">github.com/lackmannicholas/voice-evals</a></p><div class="contribution"><span class="small-label">My contribution</span><p>Reference-free audio evals originated and brought into production.</p></div></div><div class="voice-panel"><p class="small-label">Three evaluation layers</p><ul class="integration-list"><li><span>Layer 1</span><strong>Acoustic & perceptual quality (MOS predictors)</strong></li><li><span>Layer 2</span><strong>Conversational dynamics</strong></li><li><span>Layer 3</span><strong>Audio LLM-as-judge</strong></li></ul><p class="panel-note">Reference-free quality signals for voice output without ground truth.</p></div></div>
-        <div class="project-result"><span class="small-label">Result</span><p>Reference-free audio evals now run in production.</p></div>
+        <div class="project-topline"><span class="project-number">04</span><span class="eyebrow">Evaluation
+            infrastructure</span><span class="project-label">Evals / Quality signals / Replay</span></div>
+        <div class="project-grid">
+          <div class="project-copy">
+            <h3 id="evals-title">Evals for output<br>with no ground truth.</h3>
+            <p>Fixing latency raised a bigger question: why couldn’t we see when voice quality was getting worse? Voice
+              output has no ground truth, so it needed reference-free quality signals.</p>
+            <p>I originated reference-free audio evals for voice output and brought them into production. The suite uses
+              DNSMOS, turn-taking measures, and audio LLM-as-judge.</p>
+            <p>The Agent Platform also uses eval-gated versioned releases.</p>
+            <p>Public reference implementation: <a
+                href="https://github.com/lackmannicholas/voice-evals">github.com/lackmannicholas/voice-evals</a></p>
+            <div class="contribution"><span class="small-label">My contribution</span>
+              <p>Reference-free audio evals originated and brought into production.</p>
+            </div>
+          </div>
+          <div class="voice-panel">
+            <p class="small-label">Three evaluation layers</p>
+            <ul class="integration-list">
+              <li><span>Layer 1</span><strong>Acoustic & perceptual quality (MOS predictors)</strong></li>
+              <li><span>Layer 2</span><strong>Conversational dynamics</strong></li>
+              <li><span>Layer 3</span><strong>Audio LLM-as-judge</strong></li>
+            </ul>
+            <p class="panel-note">Reference-free quality signals for voice output without ground truth.</p>
+          </div>
+        </div>
+        <div class="project-result"><span class="small-label">Result</span>
+          <p>Reference-free audio evals now run in production.</p>
+        </div>
       </article>
 
       <!-- 05 · Agentix -->
 
       <article class="project" aria-labelledby="agentix-title">
-        <div class="project-topline"><span class="project-number">05</span><span class="eyebrow">Voice agent orchestration</span><span class="project-label">Python / LangGraph</span></div>
+        <div class="project-topline"><span class="project-number">05</span><span class="eyebrow">Voice agent
+            orchestration</span><span class="project-label">Python / LangGraph</span></div>
         <div class="project-grid">
-          <div class="project-copy"><h3 id="agentix-title">Agentix</h3><p class="project-subtitle">Orchestration for<br>production leasing AI voice.</p><p>I designed and built Agentix for real-time LLM orchestration over telephony. It coordinates streaming audio, WebSocket telephony integration, and multi-step LangGraph agents.</p><p>Agentix provided the framework for taking the leasing AI voice product from prototype to GA.</p><div class="contribution"><span class="small-label">My contribution</span><p>Framework design, streaming audio pipelines, telephony integration, and LLM agent coordination.</p></div></div>
-          <div class="architecture" role="img" aria-label="Agentix coordinates streaming audio, telephony integration, and multi-step LangGraph agents for leasing AI voice.">
-            <div class="diagram-caption"><span>Voice system components</span><span class="diagram-index">A / 05</span></div>
-            <div class="channel-grid"><span>Audio</span><span>Telephony</span><span>LangGraph</span><span>LLM</span><span>Voice</span></div>
+          <div class="project-copy">
+            <h3 id="agentix-title">Agentix</h3>
+            <p class="project-subtitle">Orchestration for<br>production leasing AI voice.</p>
+            <p>I designed and built Agentix for real-time LLM orchestration over telephony. It coordinates streaming
+              audio, WebSocket telephony integration, and multi-step LangGraph agents.</p>
+            <p>Agentix provided the framework for taking the leasing AI voice product from prototype to GA.</p>
+            <div class="contribution"><span class="small-label">My contribution</span>
+              <p>Framework design, streaming audio pipelines, telephony integration, and LLM agent coordination.</p>
+            </div>
+          </div>
+          <div class="architecture" role="img"
+            aria-label="Agentix coordinates streaming audio, telephony integration, and multi-step LangGraph agents for leasing AI voice.">
+            <div class="diagram-caption"><span>Voice system components</span><span class="diagram-index">A / 05</span>
+            </div>
+            <div class="channel-grid">
+              <span>Audio</span><span>Telephony</span><span>LangGraph</span><span>LLM</span><span>Voice</span></div>
             <div class="diagram-connectors" aria-hidden="true"></div>
-            <div class="agentix-node"><span class="node-mark" aria-hidden="true">a<span>_</span></span><div><strong>agentix</strong><span>Orchestration framework</span></div><span class="node-chip">LangGraph</span></div>
+            <div class="agentix-node"><span class="node-mark" aria-hidden="true">a<span>_</span></span>
+              <div><strong>agentix</strong><span>Orchestration framework</span></div><span
+                class="node-chip">LangGraph</span>
+            </div>
             <p class="diagram-foot">Real-time orchestration for leasing calls</p>
           </div>
         </div>
-        <div class="project-result"><span class="small-label">Result</span><p>An orchestration framework used to take a production leasing AI voice agent from prototype to GA.</p></div>
-        <details class="case-detail"><summary><span>Inside the work</span><span class="expand-icon" aria-hidden="true"></span></summary><div class="detail-grid"><div><h4>Starting point</h4><p>RealPage needed real-time LLM orchestration over telephony and had no internal framework for it.</p></div><div><h4>Framework design</h4><p>Agentix coordinated streaming audio, telephony WebSockets, and multi-step LangGraph agents.</p></div><div><h4>Netflix relevance</h4><p>Direct experience building the orchestration layer for a production AI voice agent.</p></div></div></details>
+        <div class="project-result"><span class="small-label">Result</span>
+          <p>An orchestration framework used to take a production leasing AI voice agent from prototype to GA.</p>
+        </div>
+        <details class="case-detail">
+          <summary><span>Inside the work</span><span class="expand-icon" aria-hidden="true"></span></summary>
+          <div class="detail-grid">
+            <div>
+              <h4>Starting point</h4>
+              <p>RealPage needed real-time LLM orchestration over telephony and had no internal framework for it.</p>
+            </div>
+            <div>
+              <h4>Framework design</h4>
+              <p>Agentix coordinated streaming audio, telephony WebSockets, and multi-step LangGraph agents.</p>
+            </div>
+            <div>
+              <h4>Netflix relevance</h4>
+              <p>Direct experience building the orchestration layer for a production AI voice agent.</p>
+            </div>
+          </div>
+        </details>
       </article>
 
       <!-- 06 · Platform / IaC -->
 
       <article class="project" aria-labelledby="platform-title">
-        <div class="project-topline"><span class="project-number">06</span><span class="eyebrow">Developer infrastructure</span><span class="project-label">Terraform / Platform</span></div>
-        <div class="project-grid"><div class="project-copy"><h3 id="platform-title">Make the platform<br>a path to shipping.</h3><p>At RealPage, I restructured Terraform provisioning to reduce new environment creation from six months to one day across 190 engineers.</p><div class="contribution"><span class="small-label">My contribution</span><p>Terraform restructuring and environment provisioning for 190 engineers.</p></div></div><div class="outcome-panel"><p class="small-label">Environment creation time</p><div class="before"><span>Before</span><strong>6 months</strong></div><div class="after"><span>After</span><strong>1 day<span aria-hidden="true">↘</span></strong></div></div></div>
-        <div class="project-result"><span class="small-label">Result</span><p>Reduced new environment creation from six months to one day across 190 engineers.</p></div>
-        <details class="case-detail"><summary><span>Inside the work</span><span class="expand-icon" aria-hidden="true"></span></summary><div class="detail-grid"><div><h4>The problem</h4><p>Environment creation was a long lead-time dependency for product engineering.</p></div><div><h4>The platform work</h4><p>Terraform restructuring reduced the time to provision a new environment.</p></div><div><h4>Netflix relevance</h4><p>A track record of connecting shared infrastructure to a concrete developer outcome: less time waiting to build and ship.</p></div></div></details>
+        <div class="project-topline"><span class="project-number">06</span><span class="eyebrow">Developer
+            infrastructure</span><span class="project-label">Terraform / Platform</span></div>
+        <div class="project-grid">
+          <div class="project-copy">
+            <h3 id="platform-title">Make the platform<br>a path to shipping.</h3>
+            <p>At RealPage, I restructured Terraform provisioning to reduce new environment creation from six months to
+              one day across 190 engineers.</p>
+            <div class="contribution"><span class="small-label">My contribution</span>
+              <p>Terraform restructuring and environment provisioning for 190 engineers.</p>
+            </div>
+          </div>
+          <div class="outcome-panel">
+            <p class="small-label">Environment creation time</p>
+            <div class="before"><span>Before</span><strong>6 months</strong></div>
+            <div class="after"><span>After</span><strong>1 day<span aria-hidden="true">↘</span></strong></div>
+          </div>
+        </div>
+        <div class="project-result"><span class="small-label">Result</span>
+          <p>Reduced new environment creation from six months to one day across 190 engineers.</p>
+        </div>
+        <details class="case-detail">
+          <summary><span>Inside the work</span><span class="expand-icon" aria-hidden="true"></span></summary>
+          <div class="detail-grid">
+            <div>
+              <h4>The problem</h4>
+              <p>Environment creation was a long lead-time dependency for product engineering.</p>
+            </div>
+            <div>
+              <h4>The platform work</h4>
+              <p>Terraform restructuring reduced the time to provision a new environment.</p>
+            </div>
+            <div>
+              <h4>Netflix relevance</h4>
+              <p>A track record of connecting shared infrastructure to a concrete developer outcome: less time waiting
+                to build and ship.</p>
+            </div>
+          </div>
+        </details>
       </article>
-      <p class="work-note">Project summaries describe my contributions at a high level. Internal source code, system names, and production data are not reproduced here.</p>
+      <p class="work-note">Project summaries describe my contributions at a high level. Internal source code, system
+        names, and production data are not reproduced here.</p>
     </section>
 
 
-    <section class="experience-section" id="experience" aria-labelledby="experience-title"><div class="shell section">
-      <div class="section-heading"><div><p class="eyebrow">02 / Experience</p><h2 id="experience-title">Hands-on depth.<br>Cross-team perspective.</h2></div><p class="section-intro">Individual contribution, informed by having led engineering teams, a platform group, and a startup’s engineering function.</p></div>
-      <div class="experience-layout"><div class="experience-intro"><p class="large-number">13+</p><p class="experience-years">years in software engineering</p><p class="experience-aside">BBA in Management Information Systems, Washington State University; MS in Computer Information Systems, Boston University.</p></div><div class="timeline">
-        <article><div class="timeline-label">RealPage · Oct 2024–Present</div><h3>Staff Software Engineer – Agentic AI</h3><p class="timeline-subtitle">Agent Platform and real-time voice</p><ul><li>Co-architect and co-own the internal Agent Platform.</li><li>Led the leasing AI voice product from prototype to GA; currently about 6,000 calls a day.</li><li>Designed and built Agentix for real-time LLM orchestration.</li><li>Originated reference-free audio evals, now running in production.</li></ul></article>
+    <section class="experience-section" id="experience" aria-labelledby="experience-title">
+      <div class="shell section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">02 / Experience</p>
+            <h2 id="experience-title">Hands-on depth.<br>Cross-team perspective.</h2>
+          </div>
+          <p class="section-intro">Individual contribution, informed by having led engineering teams, a platform group,
+            and a startup’s engineering function.</p>
+        </div>
+        <div class="experience-layout">
+          <div class="experience-intro">
+            <p class="large-number">13+</p>
+            <p class="experience-years">years in software engineering</p>
+            <p class="experience-aside">BBA in Management Information Systems, Washington State University; MS in
+              Computer Information Systems, Boston University.</p>
+          </div>
+          <div class="timeline">
+            <article>
+              <div class="timeline-label">RealPage · Oct 2024–Present</div>
+              <h3>Staff Software Engineer – Agentic AI</h3>
+              <p class="timeline-subtitle">Agent Platform and real-time voice</p>
+              <ul>
+                <li>Co-architect and co-own the internal Agent Platform. I own the voice plane, sessions, and long-term
+                  memory (Mem0), and am building agent identity and cost governance.</li>
+                <li>Designed the code-first SDK path that lets engineers build with platform primitives from their own
+                  repositories.</li>
+                <li>Led the leasing AI voice product from prototype to GA; it handles about 6,000 calls daily with
+                  400,000+ units onboarded.</li>
+                <li>Built Agentix, then assisted the migration to the OpenAI Agents SDK.</li>
+                <li>Originated reference-free audio evals, now running in production</li>
+                <li>Designed the path for agents to run on Google Enterprise Agent Platform or Team-hosted as an
+                  alternatives to the internal runtime service.</li>
+                <li>Led Leasing agent GA readiness with the security and AI safety teams, securing Architecture Board
+                  clearance.</li>
+                <li>Implemented and tuned guardrails to fit the voice latency budget.</li>
+                <li>Led the build and deployment of an MCP server exposing Knock APIs.</li>
+                <li>Advised on the evals platform and on Leasing AI and Resident AI performance at GA.</li>
+                <li>Led caching and performance work, ElastiCache migration, deployment processes, and LangSmith
+                  operations.</li>
+              </ul>
+            </article>
+            <article>
+              <div class="timeline-label">RealPage · Oct 2022–Oct 2024</div>
+              <h3>Senior Software Engineering Manager</h3>
+              <p class="timeline-subtitle">Telephony, Auth, Data Services, IaC</p>
+              <p>Managed engineering teams and restructured Terraform provisioning, reducing new environment creation
+                from six months to one day across 190 engineers.</p>
+            </article>
+            <article>
+              <div class="timeline-label">Knock · Jan–Oct 2022</div>
+              <h3>Staff Software Engineer, then Software Engineering Manager</h3>
+              <p class="timeline-subtitle">Staff: Jan–Jul 2022 · Manager: Jul–Oct 2022 · Telephony, Auth, Data Services
+              </p>
+              <p>Led a Python 2.7-to-3 migration spanning 600,000 lines of code, 800 endpoints, and 50 asynchronous
+                Celery tasks.</p>
+            </article>
+            <article>
+              <div class="timeline-label">OceanSmart · Aug 2019–Jan 2022</div>
+              <h3>Founding Engineer &amp; Engineering Manager</h3>
+              <p class="timeline-subtitle">Maritime software platform</p>
+              <p>One of five founding tech leads. Built engineering teams and helped take the company to profitability
+                in year two.</p>
+            </article>
 
-        <article><div class="timeline-label">RealPage · Oct 2022–Oct 2024</div><h3>Senior Software Engineering Manager</h3><p class="timeline-subtitle">Telephony, Auth, Data Services, IaC</p><p>Managed engineering teams and restructured Terraform provisioning, reducing new environment creation from six months to one day across 190 engineers.</p></article>
-        <article><div class="timeline-label">Knock · Jan–Oct 2022</div><h3>Staff Software Engineer, then Software Engineering Manager</h3><p class="timeline-subtitle">Staff: Jan–Jul 2022 · Manager: Jul–Oct 2022 · Telephony, Auth, Data Services</p><p>Led a Python 2.7-to-3 migration spanning 600,000 lines of code, 800 endpoints, and 50 asynchronous Celery tasks.</p></article>
-        <article><div class="timeline-label">OceanSmart · Aug 2019–Jan 2022</div><h3>Founding Engineer &amp; Engineering Manager</h3><p class="timeline-subtitle">Maritime software platform</p><p>One of five founding tech leads. Built engineering teams and helped take the company to profitability in year two.</p></article>
-
-        <article><div class="timeline-label">Oceaneering Global Data Solutions · Aug 2014–Aug 2019; CGI · Mar 2013–Aug 2014</div><h3>Software Developer II; Software Developer</h3><p class="timeline-subtitle">Early engineering roles</p><p>Built production systems before moving into engineering leadership and agent infrastructure.</p></article>
-      </div></div>
-    </div></section>
+            <article>
+              <div class="timeline-label">Oceaneering Global Data Solutions · Aug 2014–Aug 2019; CGI · Mar 2013–Aug 2014
+              </div>
+              <h3>Software Developer II; Software Developer</h3>
+              <p class="timeline-subtitle">Early engineering roles</p>
+              <p>Built production systems before moving into engineering leadership and agent infrastructure.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section class="shell section fit-section" id="fit" aria-labelledby="fit-title">
-      <div class="section-heading"><div><p class="eyebrow">03 / Netflix Agent Platform</p><h2 id="fit-title">Where my experience<br>meets the role.</h2></div><p class="section-intro">I’m building the same substrate this team owns: a runtime, memory, release gates, and evals that other engineers ship agents on.</p></div>
-      <div class="fit-table-wrap"><table class="fit-table"><thead><tr><th scope="col">The role calls for</th><th scope="col">Experience I bring</th><th scope="col">Selected work</th></tr></thead><tbody>
-        <tr><th scope="row">Own a core agent primitive end to end</th><td>Co-architect and co-own the Agent Platform. I own its voice plane, sessions, and long-term memory (Mem0).</td><td><a href="#platform-agent-title">Agent Platform <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">LLM agents in production, beyond demos</th><td>A leasing AI voice product handling about 6,000 calls daily, with 400,000+ units onboarded.</td><td><a href="#voice-title">Real-time voice <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">Rigorous agent evaluation</th><td>Reference-free voice evals using DNSMOS, turn taking, and LLM-as-judge; eval-gated platform releases.</td><td><a href="#evals-title">Evals <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">The loop that lets agents improve</th><td>Originated reference-free audio evals for voice output with no ground truth; they now run in production.</td><td><a href="#evals-title">Evals <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">Tool and MCP patterns</th><td>MCP and tool/function calling are part of my agent-platform toolkit; I designed the platform’s code-first SDK and GEAP paths.</td><td><a href="#experience">Experience <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">Iterate fast with real users</th><td>Designed code-first SDK and Google Enterprise Agent Platform paths for RealPage’s Agent Platform.</td><td><a href="#codeplane-title">Code-first plane <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">Scalable, observable, fault-tolerant distributed systems</th><td>A real-time audio path under a hard latency budget, diagnosed end to end and improved with controlled experiments.</td><td><a href="#voice-title">Real-time voice <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">SDKs and libraries others build on</th><td>Built Agentix for production voice-agent orchestration, then designed a code-first SDK path for the Agent Platform.</td><td><a href="#agentix-title">Agentix <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">Choosing what to build by business impact</th><td>Originated production reference-free audio evals and led the leasing AI voice product from prototype to GA.</td><td><a href="#evals-title">Evals <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">Technical direction through credibility</th><td>Co-architected the Agent Platform and led cross-team integration to secure GA clearance for the leasing AI voice product.</td><td><a href="#experience">Experience <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">Cross-functional work with security and partners</th><td>Led cross-team integration for leasing AI voice GA clearance from the Architecture Board.</td><td><a href="#experience">Experience <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">Python plus a second language</th><td>Python daily; production Java earlier in my career.</td><td><a href="#experience">Experience <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><td colspan="3" class="fit-group">Preferred qualifications</td></tr>
-        <tr><th scope="row">Memory and state systems for agents</th><td>Own sessions and long-term memory (Mem0) on the Agent Platform.</td><td><a href="#platform-agent-title">Agent Platform <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">Identity, guardrails, and safe rollout</th><td>Building agent identity and co-owning platform guardrails; payments and PII agents use CI-gated releases.</td><td><a href="#platform-agent-title">Agent Platform <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">Cost governance for LLM workloads</th><td>Building cost governance into the Agent Platform.</td><td><a href="#platform-agent-title">Agent Platform <span aria-hidden="true">↗</span></a></td></tr>
-        <tr><th scope="row">Temporal, FastAPI, PostgreSQL, Kubernetes</th><td>Hands-on systems experience includes FastAPI, PostgreSQL, Kubernetes, and Temporal.</td><td><a href="#platform-agent-title">Agent Platform <span aria-hidden="true">↗</span></a></td></tr>
-      </tbody></table></div>
-      <div class="skills-line"><p class="small-label">Tools used in this work</p><ul aria-label="Technical skills"><li>Python</li><li>Java (earlier career)</li><li>LangGraph</li><li>OpenAI Agents SDK</li><li>MCP</li><li>Temporal</li><li>FastAPI</li><li>PostgreSQL</li><li>Kubernetes</li><li>LangSmith</li><li>OpenTelemetry</li><li>gRPC</li><li>WebSockets</li><li>WebRTC</li><li>Redis / ElastiCache</li><li>OpenAI Realtime</li><li>Terraform</li></ul></div>
-      <div class="closing"><span class="closing-mark" aria-hidden="true">NL.</span><div><p class="eyebrow">The work I want to do next</p><p>Own a core agent primitive.<br>Make it useful across teams.<br><span>Keep improving it in production.</span></p></div></div>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">03 / Netflix Agent Platform</p>
+          <h2 id="fit-title">Where my experience<br>meets the role.</h2>
+        </div>
+        <p class="section-intro">I’m building the same substrate this team owns: a runtime, memory, release gates, and
+          evals that other engineers ship agents on.</p>
+      </div>
+      <div class="fit-table-wrap">
+        <table class="fit-table">
+          <thead>
+            <tr>
+              <th scope="col">The role calls for</th>
+              <th scope="col">Experience I bring</th>
+              <th scope="col">Selected work</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Own a core agent primitive end to end</th>
+              <td>Co-architect and co-own the Agent Platform. I own its voice plane, sessions, and long-term memory
+                (Mem0).</td>
+              <td><a href="#platform-agent-title">Agent Platform <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">LLM agents in production, beyond demos</th>
+              <td>A leasing AI voice product handling about 6,000 calls daily, with 400,000+ units onboarded.</td>
+              <td><a href="#voice-title">Real-time voice <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">Rigorous agent evaluation</th>
+              <td>Reference-free voice evals using DNSMOS, turn taking, and LLM-as-judge; eval-gated platform releases.
+              </td>
+              <td><a href="#evals-title">Evals <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">The loop that lets agents improve</th>
+              <td>Originated reference-free audio evals for voice output with no ground truth; they now run in
+                production.</td>
+              <td><a href="#evals-title">Evals <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">Tool and MCP patterns</th>
+              <td>MCP and tool/function calling are part of my agent-platform toolkit; I designed the platform’s
+                code-first SDK and GEAP paths.</td>
+              <td><a href="#experience">Experience <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">Iterate fast with real users</th>
+              <td>Designed code-first SDK and Google Enterprise Agent Platform paths for RealPage’s Agent Platform.</td>
+              <td><a href="#codeplane-title">Code-first plane <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">Scalable, observable, fault-tolerant distributed systems</th>
+              <td>A real-time audio path under a hard latency budget, diagnosed end to end and improved with controlled
+                experiments.</td>
+              <td><a href="#voice-title">Real-time voice <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">SDKs and libraries others build on</th>
+              <td>Built Agentix for production voice-agent orchestration, then designed a code-first SDK path for the
+                Agent Platform.</td>
+              <td><a href="#agentix-title">Agentix <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">Choosing what to build by business impact</th>
+              <td>Originated production reference-free audio evals and led the leasing AI voice product from prototype
+                to GA.</td>
+              <td><a href="#evals-title">Evals <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">Technical direction through credibility</th>
+              <td>Co-architected the Agent Platform and led cross-team integration to secure GA clearance for the
+                leasing AI voice product.</td>
+              <td><a href="#experience">Experience <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">Cross-functional work with security and partners</th>
+              <td>Led cross-team integration for leasing AI voice GA clearance from the Architecture Board.</td>
+              <td><a href="#experience">Experience <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">Python plus a second language</th>
+              <td>Python daily; production Java earlier in my career.</td>
+              <td><a href="#experience">Experience <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <td colspan="3" class="fit-group">Preferred qualifications</td>
+            </tr>
+            <tr>
+              <th scope="row">Memory and state systems for agents</th>
+              <td>Own sessions and long-term memory (Mem0) on the Agent Platform.</td>
+              <td><a href="#platform-agent-title">Agent Platform <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">Identity, guardrails, and safe rollout</th>
+              <td>Building agent identity and co-owning platform guardrails; payments and PII agents use CI-gated
+                releases.</td>
+              <td><a href="#platform-agent-title">Agent Platform <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">Cost governance for LLM workloads</th>
+              <td>Building cost governance into the Agent Platform.</td>
+              <td><a href="#platform-agent-title">Agent Platform <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">Temporal, FastAPI, PostgreSQL, Kubernetes</th>
+              <td>Hands-on systems experience includes FastAPI, PostgreSQL, Kubernetes, and Temporal.</td>
+              <td><a href="#platform-agent-title">Agent Platform <span aria-hidden="true">↗</span></a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="skills-line">
+        <p class="small-label">Tools used in this work</p>
+        <ul aria-label="Technical skills">
+          <li>Python</li>
+          <li>Java (earlier career)</li>
+          <li>LangGraph</li>
+          <li>OpenAI Agents SDK</li>
+          <li>MCP</li>
+          <li>Temporal</li>
+          <li>FastAPI</li>
+          <li>PostgreSQL</li>
+          <li>Kubernetes</li>
+          <li>LangSmith</li>
+          <li>OpenTelemetry</li>
+          <li>gRPC</li>
+          <li>WebSockets</li>
+          <li>WebRTC</li>
+          <li>Redis / ElastiCache</li>
+          <li>OpenAI Realtime</li>
+          <li>Terraform</li>
+        </ul>
+      </div>
+      <div class="closing"><span class="closing-mark" aria-hidden="true">NL.</span>
+        <div>
+          <p class="eyebrow">The work I want to do next</p>
+          <p>Own a core agent primitive.<br>Make it useful across teams.<br><span>Keep improving it in
+              production.</span></p>
+        </div>
+      </div>
     </section>
   </main>
 
-  <footer class="footer"><div class="shell footer-inner"><p>Nick Lackman <span>Staff Software Engineer · Bremerton, WA</span></p><div class="footer-links"><a href="mailto:lackmannicholas@gmail.com">Email <span aria-hidden="true">↗</span></a><a href="https://www.linkedin.com/in/lackmannicholas">LinkedIn <span aria-hidden="true">↗</span></a><a href="https://github.com/lackmannicholas">GitHub <span aria-hidden="true">↗</span></a><a href="/writing/">Writing <span aria-hidden="true">↗</span></a><a href="/">nicklackman.com <span aria-hidden="true">↗</span></a><a href="#top">Back to top <span aria-hidden="true">↑</span></a></div></div></footer>
+  <footer class="footer">
+    <div class="shell footer-inner">
+      <p>Nick Lackman <span>Staff Software Engineer · Bremerton, WA</span></p>
+      <div class="footer-links"><a href="mailto:lackmannicholas@gmail.com">Email <span aria-hidden="true">↗</span></a><a
+          href="https://www.linkedin.com/in/lackmannicholas">LinkedIn <span aria-hidden="true">↗</span></a><a
+          href="https://github.com/lackmannicholas">GitHub <span aria-hidden="true">↗</span></a><a
+          href="/writing/">Writing <span aria-hidden="true">↗</span></a><a href="/">nicklackman.com <span
+            aria-hidden="true">↗</span></a><a href="#top">Back to top <span aria-hidden="true">↑</span></a></div>
+    </div>
+  </footer>
   <script>
-// Native links and disclosure controls work without JavaScript.
-// This adds a current-section indicator to the navigation only.
-const navigationLinks = Array.from(document.querySelectorAll('nav a'));
-const sections = navigationLinks.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
-if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver(entries => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      for (const link of navigationLinks) {
-        if (link.getAttribute('href') === '#' + entry.target.id) link.setAttribute('aria-current', 'location');
-        else link.removeAttribute('aria-current');
-      }
+    // Native links and disclosure controls work without JavaScript.
+    // This adds a current-section indicator to the navigation only.
+    const navigationLinks = Array.from(document.querySelectorAll('nav a'));
+    const sections = navigationLinks.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(entries => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          for (const link of navigationLinks) {
+            if (link.getAttribute('href') === '#' + entry.target.id) link.setAttribute('aria-current', 'location');
+            else link.removeAttribute('aria-current');
+          }
+        }
+      }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
+      sections.forEach(section => observer.observe(section));
     }
-  }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
-  sections.forEach(section => observer.observe(section));
-}
-</script>
+  </script>
 </body>
+
 </html>
