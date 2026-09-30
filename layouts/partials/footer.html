@@ -5,10 +5,10 @@
       <a href="/writing/">Writing <span aria-hidden="true">↗</span></a>
       <a href="/writing/index.xml">RSS <span aria-hidden="true">↗</span></a>
       {{- end }}
-      <a href="mailto:{{ site.Params.email }}">Email <span aria-hidden="true">↗</span></a>
+      <a href="mailto:{{ site.Params.email }}" data-umami-event="contact-email" data-umami-event-placement="footer">Email <span aria-hidden="true">↗</span></a>
       {{- with site.Params.linkedin }}
-      <a href="{{ . }}">LinkedIn <span aria-hidden="true">↗</span></a>
+      <a href="{{ . }}" data-umami-event="contact-linkedin" data-umami-event-placement="footer">LinkedIn <span aria-hidden="true">↗</span></a>
       {{- end }}
-      <a href="https://github.com/{{ site.Params.github }}">GitHub <span aria-hidden="true">↗</span></a>
+      <a href="https://github.com/{{ site.Params.github }}" data-umami-event="contact-github" data-umami-event-placement="footer">GitHub <span aria-hidden="true">↗</span></a>
     </div>
   </div></footer>

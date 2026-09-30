@@ -24,6 +24,9 @@
     </aside>
   </div>
   <div class="evidence-strip" aria-label="At a glance">
+    <div><strong>26,000 <span>requests / day</span></strong>
+      <p>Across SMS, chat, email, and voice</p>
+    </div>
     <div><strong>~6,000 <span>calls / day</span></strong>
       <p>Production leasing AI voice product I helped take to GA</p>
     </div>
@@ -111,8 +114,9 @@
         <h3 id="evals-title">Evals for output<br>with no ground truth.</h3>
         <p>Voice output has no ground truth, so I originated reference-free audio evals to measure its quality. DNSMOS,
           turn-taking measures, and audio LLM-as-judge now run in production.</p>
-        <p>Public reference implementation: <a
-            href="https://github.com/lackmannicholas/voice-evals">github.com/lackmannicholas/voice-evals</a></p>
+        <p>Public reference implementation: <a href="https://github.com/lackmannicholas/voice-evals"
+            data-umami-event="project-repository"
+            data-umami-event-project="voice-evals">github.com/lackmannicholas/voice-evals</a></p>
       </div>
       <div class="voice-panel">
         <p class="small-label">Three evaluation layers</p>
@@ -246,12 +250,16 @@
     <p class="section-intro">Agent platforms, real-time systems, and the evaluation problems in between.</p>
   </div>
   <div class="contact-grid">
-    <a href="mailto:{{ site.Params.email }}"><span>Email</span><strong>{{ site.Params.email }}<em
+    <a href="mailto:{{ site.Params.email }}" data-umami-event="contact-email"
+      data-umami-event-placement="contact"><span>Email</span><strong>{{ site.Params.email }}<em
           aria-hidden="true">↗</em></strong></a>
     {{- with site.Params.linkedin }}
-    <a href="{{ . }}"><span>LinkedIn</span><strong>Nick Lackman<em aria-hidden="true">↗</em></strong></a>
+    <a href="{{ . }}" data-umami-event="contact-linkedin"
+      data-umami-event-placement="contact"><span>LinkedIn</span><strong>Nick Lackman<em
+          aria-hidden="true">↗</em></strong></a>
     {{- end }}
-    <a href="https://github.com/{{ site.Params.github }}"><span>GitHub</span><strong>{{ site.Params.github }}<em
+    <a href="https://github.com/{{ site.Params.github }}" data-umami-event="contact-github"
+      data-umami-event-placement="contact"><span>GitHub</span><strong>{{ site.Params.github }}<em
           aria-hidden="true">↗</em></strong></a>
   </div>
   <div class="closing"><span class="closing-mark" aria-hidden="true">NL.</span>

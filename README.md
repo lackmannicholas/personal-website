@@ -34,6 +34,26 @@ brew install hugo   # once
 BUCKET=nicklackman.com DISTRIBUTION_ID=E37HOY2EC40ION ./infra/deploy.sh
 ```
 
+## Analytics
+
+Umami Cloud tracks pageviews across the home page, writing, and company-specific
+pages. Its script is in `layouts/partials/head.html` and the standalone HTML pages
+under `static/for/` (also mirrored in the root `index.html`). Tracking runs only on
+`nicklackman.com` and `www.nicklackman.com`; localhost previews are excluded, and
+section anchors are excluded from recorded URLs.
+
+Named events appear in Umami's Events view:
+
+- `contact-email`, `contact-linkedin`, `contact-github`: contact clicks, with a
+  `placement` property distinguishing the contact section from the footer.
+- `project-repository`: the voice-evals repository link, with `project=voice-evals`.
+
+No additional API key or backend is needed. After deploying, visit the live site
+and click a contact link, then check the website's Umami dashboard for a pageview
+and the corresponding event. To exclude your own visits, set
+`localStorage.setItem('umami.disabled', '1')` in your browser console on the live
+site; use `localStorage.removeItem('umami.disabled')` to resume tracking.
+
 ## Layout
 
 ```
