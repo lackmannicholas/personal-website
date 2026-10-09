@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=60124&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#faf9f6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141b22" media="(prefers-color-scheme: dark)">
+  <title>Your Voice Agent Passed Every Eval. The Caller Hung Up. — Nick Lackman</title>
+  <meta name="description" content="Why transcripts miss voice AI failures, and how to evaluate acoustic quality, conversational timing, and human experience without a labeling army.">
+  <meta name="author" content="Nick Lackman">
+  <link rel="canonical" href="http://localhost:60124/writing/evaluating-voice-agents/">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://localhost:60124/writing/evaluating-voice-agents/">
+  <meta property="og:title" content="Your Voice Agent Passed Every Eval. The Caller Hung Up. — Nick Lackman">
+  <meta property="og:description" content="Why transcripts miss voice AI failures, and how to evaluate acoustic quality, conversational timing, and human experience without a labeling army.">
+  <meta property="og:site_name" content="Nick Lackman">
+  <meta name="twitter:card" content="summary">
+  <link rel="alternate" type="application/rss+xml" href="http://localhost:60124/writing/index.xml" title="Nick Lackman — Writing">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23faf9f6'/%3E%3Cpath d='M8 24V8h4l8 11V8h4v16h-4L12 13v11Z' fill='%23245c85'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/site.874c6662da5bf16471861266dc6d6b15a536115eb53618c1172a1390c45e0aaa.css" integrity="sha256-h0xmYtpb8WRxhhJm3G1rFaU2EV61NhjBFyoTkMReCqo=">
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="36d9e9b3-6074-4b2e-84b8-6f9c73b5874b" data-domains="nicklackman.com,www.nicklackman.com" data-exclude-hash="true"></script>
+  <meta property="article:published_time" content="2026-10-08T00:00:00Z">
+  <meta property="article:modified_time" content="2026-10-08T00:00:00Z">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Nick Lackman","url":"http://localhost:60124/"},"dateModified":"2026-10-08","datePublished":"2026-10-08","description":"Why transcripts miss voice AI failures, and how to evaluate acoustic quality, conversational timing, and human experience without a labeling army.","headline":"Your Voice Agent Passed Every Eval. The Caller Hung Up.","url":"http://localhost:60124/writing/evaluating-voice-agents/"}
+  </script>
+
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+    <header class="header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="Nick Lackman, home"><span class="monogram" aria-hidden="true">NL<span>.</span></span><span class="brand-name">Nick Lackman</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/#work">Work</a>
+        <a href="/writing/" aria-current="page">Writing</a>
+        <a href="/#experience">Experience</a>
+        <a href="/#contact">Contact <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <article class="shell article" aria-labelledby="article-title">
+      <header class="article-header">
+        <p class="eyebrow"><a href="/writing/">Writing</a> · <time datetime="2026-10-08">October 8, 2026</time> · 10 min read</p>
+        <h1 id="article-title">Your Voice Agent Passed Every Eval. The Caller Hung Up.</h1><p class="article-dek">Why transcripts miss voice AI failures, and how to evaluate acoustic quality, conversational timing, and human experience without a labeling army.</p>
+      </header>
+      <div class="prose">
+<p>Your voice agent passed every eval you have. The transcript looks perfect. The tool calls all fired. And the caller hung up on it.</p>
+<p>I&rsquo;ve spent two years building production voice AI, and this is the failure that took me longest to get a handle on — not because it&rsquo;s rare, but because our entire evaluation stack was structurally incapable of seeing it.</p>
+<p>The transcript said the agent handled the call. What actually happened was four seconds of dead air, a robotic monotone, and the agent talking over the caller mid-sentence. None of that is in the transcript. None of it could be.</p>
+<p>This post is about why evaluating voice is a fundamentally different problem than evaluating text, what you can actually do about it without a labeling army, and why the same problem is waiting for anyone building video, robotics, or anything else where the output is something a human experiences rather than reads.</p>
+<p>The reference implementation is open source: <a href="https://github.com/lackmannicholas/voice-evals">voice-evals</a>.</p>
+<h2 id="the-transcript-is-a-lossy-projection">The transcript is a lossy projection</h2>
+<p>Here&rsquo;s the core of it. When you evaluate a voice agent on its transcript, you&rsquo;re evaluating a projection of the thing your caller actually heard — and the projection destroys exactly the information you need.</p>
+<p>Consider the line &ldquo;Sure, I can help with that.&rdquo;</p>
+<p>That string is character-identical whether the agent said it warmly or in a flat robotic monotone. Whether it came back in 400ms or after four seconds of silence. Whether it was spoken cleanly or over the top of the caller, who was still mid-sentence. Whether it was clipped by a codec into something that sounds like a drive-thru speaker.</p>
+<p>Four completely different caller experiences. One identical transcript. Every text-based eval scores all four the same.</p>
+<p><img src="/images/writing/one-transcript-four-experiences.png" alt="One transcript, four caller experiences: a warm, prompt response; four seconds of dead air; talking over the caller; and robotic, clipped audio. All four pass transcript evaluation, but only the first keeps the caller satisfied."></p>
+<p>And it gets worse in the exact case that matters most. Our number one production failure mode is the agent freezing — background noise jams its turn detection, it can&rsquo;t tell the caller stopped speaking, and it just sits there. Silent. The caller says &ldquo;hello? …hello?&rdquo; and hangs up.</p>
+<p>What does that failure look like in a transcript? Nothing. It&rsquo;s an absence. There&rsquo;s no bad output to flag, no wrong answer to catch, no hallucination to grade. The worst thing your agent does is invisible to the tooling everyone uses to check whether it&rsquo;s working.</p>
+<p>That&rsquo;s the shape of the problem: the failure is perceptual, not logical.</p>
+<h2 id="no-reference-no-labeling-army">No reference, no labeling army</h2>
+<p>The obvious response is: fine, evaluate the audio then. Which runs directly into the second wall.</p>
+<p>For text, you can usually construct a reference. Expected output, golden answer, rubric with a right answer behind it. For audio there is no correct waveform. There&rsquo;s no &ldquo;here&rsquo;s what this response should have sounded like&rdquo; to diff against. Two takes of the same sentence, both perfectly good, are completely different at the byte level.</p>
+<p>So the instinct is to label. Get humans to rate clips, build a labeled corpus, train or validate against it.</p>
+<p>I tried this. We wanted a labeled clip corpus to tune turn detection, and it died — not from lack of will, but from labeling overhead. Every clip needs a human to listen to it in real time. You can&rsquo;t skim audio the way you skim text. A thousand clips at thirty seconds each is over eight hours of somebody&rsquo;s undivided attention, and you need that again every time the model, the voice, or the pipeline changes.</p>
+<p>That failure taught me the real constraint: when supervision is structurally unavailable, the eval strategy has to change shape. Not try harder. Change shape.</p>
+<p>The unlock was going fully reference-free. Every scorer in the pipeline had to answer &ldquo;how does this sound / behave&rdquo; without anything to compare against. No golden set, no labels, no per-clip ground truth. That one constraint made the whole thing tractable, and it&rsquo;s the single most important design decision in the framework.</p>
+<h2 id="timing-is-part-of-the-output">Timing is part of the output</h2>
+<p>The third thing that makes voice different is the one I see people miss most often, including experienced engineers.</p>
+<p>In a text system, latency is a UX property that sits outside the output. The response is the response; how long it took is a separate concern you track on a separate dashboard.</p>
+<p>In voice, timing is part of the output. A two-second gap isn&rsquo;t slow delivery of a good answer — the gap is what the caller experienced. It&rsquo;s what made them think the agent died. It&rsquo;s what made them repeat themselves. It&rsquo;s what made them hang up before the answer ever arrived.</p>
+<p>You cannot separate the what from the when. An answer that arrives late is a different answer.</p>
+<p>This has a direct consequence for how you build the eval: some things must be measured deterministically from instrumentation, not judged from the artifact. Which brings me to the part I did not expect.</p>
+<h2 id="a-judge-perceives-artifacts-users-have-experiences">A judge perceives artifacts. Users have experiences.</h2>
+<p>Modern native-audio models can listen to a call and grade it. That&rsquo;s genuinely useful — it catches prosody, tone, whether the agent sounded like it cared when the caller was angry. Things no signal-processing metric will ever get.</p>
+<p>But here&rsquo;s what I found, and it&rsquo;s the most important thing in this post:</p>
+<p>An audio model does not experience duration.</p>
+<p>It processes a recording as an artifact. It can rate responsiveness a confident 5 out of 5 on a call containing twenty seconds of dead air, because it never sat through those twenty seconds. It saw a gap in a waveform. You and I experienced an eternity of silence wondering if the line dropped.</p>
+<p>That&rsquo;s not a prompt engineering problem. You can&rsquo;t rubric your way out of it. It&rsquo;s a structural property of how the judge relates to the artifact:</p>
+<p>A judge perceives artifacts. Users have experiences.</p>
+<p>Which is why the framework has a deterministic layer that owns everything the judge structurally cannot perceive — latency, stall rate, barge-in timing — measured from event logs and audio, never from the judge&rsquo;s opinion. The judge is explicitly forbidden from gating responsiveness.</p>
+<p>I&rsquo;d generalize this beyond audio: any time you use a model as a judge, ask what your users experience that the model merely observes. That gap is where your judge will confidently lie to you.</p>
+<h2 id="from-vibe-checks-to-repeatable-comparisons">From vibe checks to repeatable comparisons</h2>
+<p>Here&rsquo;s where this stopped being an interesting problem and became an urgent one.</p>
+<p>We knew our voice agent wasn&rsquo;t good enough. The outcomes were fine — calls resolved, tools fired, nothing was wrong — but it didn&rsquo;t feel good, and everyone could hear it. So we did the reasonable thing and started evaluating other providers: Grok, Vapi, Gemini, a couple of our own POCs.</p>
+<p>Every one of those discussions ended the same way. Someone would listen to a few calls and say: &ldquo;I think this one feels better.&rdquo;</p>
+<p>And that was the entire basis for a decision that would shape the product for a year. Not because anyone was lazy — because we had no way to compare. Which one was actually better? Better at what? Where did each one fail, and did they fail in the same places? &ldquo;Feels better&rdquo; was all we had, and &ldquo;feels better&rdquo; is unfalsifiable, unrepeatable, and changes depending on which three calls you happened to listen to.</p>
+<p>That&rsquo;s the moment I understood that the eval problem wasn&rsquo;t academic. Without a way to measure, every provider decision is a vibe check with a budget attached.</p>
+<p>So I built the framework below and ran every candidate through the same gauntlet: the same scenarios, the same noisy callers, the same interruptions, scored on the same instruments. It wasn&rsquo;t the only input into the decision — cost, integration effort, and vendor risk all mattered — but for the first time the conversation had data in it. We could say &ldquo;this one stalls under background noise and that one doesn&rsquo;t&rdquo; instead of &ldquo;I like this one.&rdquo; We could point at the failure modes of each. The decision got made on information instead of impressions.</p>
+<p>That&rsquo;s the actual value of a voice eval framework. Not a score. A shared, repeatable basis for arguing about which one is better.</p>
+<h2 id="three-layers-three-kinds-of-evidence">Three layers, three kinds of evidence</h2>
+<p>The framework that came out of this splits into three layers, deliberately separated by what kind of question each one can honestly answer.</p>
+<p>Layer A — Acoustic quality. Did it sound good? Reference-free MOS predictors (DNSMOS, NISQA, UTMOS, SQUIM) score perceptual audio quality with no reference and no labels. These catch robotic synthesis, artifacts, dropouts, codec damage. Runs locally, no network, no API key, free.</p>
+<p>Layer B — Conversational dynamics. Did it behave right? Latency percentiles, stall rate, longest silence, barge-in success rate and stop-latency, turn-taking rhythm, talk-ratio. Deterministic, computed from event logs where available and VAD where not. This is the layer that catches the freezing failure — the one the transcript can&rsquo;t see. Also local and free.</p>
+<p>Layer C — Audio LLM-as-judge. Did it sound human? A native-audio model scores naturalness, prosody, pace, emotional alignment, frustration handling, and conversational flow — on the audio itself, not a transcript. Costs a few cents per call, and it&rsquo;s the only layer that needs a key.</p>
+<p>The layering isn&rsquo;t organizational tidiness. Each layer exists because the others are structurally blind to something. Layer A can&rsquo;t tell you the agent froze — silence is acoustically pristine. Layer B can&rsquo;t tell you the agent sounded like a robot. Layer C can&rsquo;t tell you how long anything took. Any one of them alone gives you a confidently wrong picture.</p>
+<p>And the human labeling that killed the earlier attempt? It survives in exactly one place: a small optional calibration set — thirty to fifty clips — used once, not to train anything, but to check whether the judge agrees with humans before you let it gate anything. Measured with weighted Cohen&rsquo;s kappa. If a dimension doesn&rsquo;t clear the bar, it&rsquo;s advisory, not a gate. Labeling as validation, not as fuel.</p>
+<h2 id="the-same-problem-beyond-voice">The same problem beyond voice</h2>
+<p>Here&rsquo;s why I think this matters beyond voice.</p>
+<p>The thing that makes voice hard to evaluate isn&rsquo;t sound. It&rsquo;s a structural property that voice happens to have, and it belongs to a whole class of systems:</p>
+<ul>
+<li>The output is continuous and time-extended, not discrete.</li>
+<li>It&rsquo;s experienced, not read — perceived in real time by a human.</li>
+<li>Failure is perceptual, not logical. Nothing is factually wrong. It just felt bad.</li>
+<li>There&rsquo;s no reference to compare against. No correct waveform, no correct trajectory.</li>
+</ul>
+<p>Anything with that shape has this problem. Video generation: temporal coherence, flicker, physically implausible motion — no ground truth frame to diff. Robotics: was the motion smooth, did it hesitate, was it legible to the human standing next to it — none of which is captured by &ldquo;did it complete the task.&rdquo; Autonomous vehicles: ride comfort as distinct from ride safety; the jerky-but-technically-safe stop that makes passengers never use the service again. Embedded and real-time control, animation, music generation, haptics.</p>
+<p>And the three-layer pattern transfers directly, because it&rsquo;s not really about audio either:</p>
+<ol>
+<li>Signal-level, reference-free perceptual metrics — the domain&rsquo;s equivalent of MOS. Smoothness and jerk for robotics; temporal consistency for video.</li>
+<li>Deterministic temporal metrics from instrumentation — the things the judge can&rsquo;t perceive. Reaction time, hesitation, timing against deadlines, all read from telemetry rather than the artifact.</li>
+<li>A native-modality model as judge — a VLM watching the robot or the generated video, doing what MOS can&rsquo;t: rating whether it looked natural, comfortable, safe, human.</li>
+</ol>
+<p>Same skeleton. Different sensors.</p>
+<p>If you&rsquo;re building in any of these areas and your eval strategy is &ldquo;check the output was correct,&rdquo; you&rsquo;re in the same position I was: passing every test you have while your users quietly leave.</p>
+<h2 id="next-manufacture-the-failures">Next: manufacture the failures</h2>
+<p>There&rsquo;s a piece I&rsquo;ve deliberately left out of this post, because it&rsquo;s a second thesis and deserves its own: you can&rsquo;t wait around for bad calls to happen. Sampling production for failures is slow, unrepresentative, and gets slower the better your agent gets.</p>
+<p>So the framework also manufactures them — a persona caller-bot that places real phone calls to the agent, plays difficult callers, interrupts mid-sentence, and pipes intelligible café babble onto the line to jam its endpointing. Not a load test. An emotional stress test. That&rsquo;s the next post.</p>
+<p>The framework is at <a href="https://github.com/lackmannicholas/voice-evals">github.com/lackmannicholas/voice-evals</a>: three layers, reference-free, Layers A and B run with no API key and no network.</p>
+<p>If you take one thing from this: your evals are not measuring what your users experienced. Go find out how far apart those two things are.</p>
+<p>Part of a series on building production voice AI. Previously: <a href="https://nicklackman.com/writing/local-vad/">Local VAD</a> · <a href="https://nicklackman.com/writing/responder-thinker/">Responder-Thinker</a> · <a href="https://nicklackman.com/writing/websockets-vs-webrtc/">WebRTC vs WebSockets</a> · <a href="https://nicklackman.com/writing/python-is-lying-to-you/">Python Is Lying to You</a> · <a href="https://nicklackman.com/writing/the-audio-gateway/">The Audio Gateway</a>.</p>
+
+      </div>
+      <footer class="article-footer">
+        <ul class="tag-list" aria-label="Tags"><li><a href="/tags/evals/">Evals</a></li><li><a href="/tags/voice-ai/">Voice-Ai</a></li><li><a href="/tags/architecture/">Architecture</a></li></ul>
+        <p class="article-byline">Written by Nick Lackman, a software engineer writing about distributed systems and AI. <a href="/">More about me</a> · <a href="/writing/">More writing</a></p>
+      </footer>
+    </article>
+
+  </main>
+    <footer class="footer"><div class="shell footer-inner">
+    <p>Nick Lackman <span>Staff Software Engineer · Bremerton, WA</span></p>
+    <div class="footer-links">
+      <a href="/writing/">Writing <span aria-hidden="true">↗</span></a>
+      <a href="/writing/index.xml">RSS <span aria-hidden="true">↗</span></a>
+      <a href="mailto:lackmannicholas@gmail.com" data-umami-event="contact-email" data-umami-event-placement="footer">Email <span aria-hidden="true">↗</span></a>
+      <a href="https://www.linkedin.com/in/lackmannicholas" data-umami-event="contact-linkedin" data-umami-event-placement="footer">LinkedIn <span aria-hidden="true">↗</span></a>
+      <a href="https://github.com/lackmannicholas" data-umami-event="contact-github" data-umami-event-placement="footer">GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </div></footer>
+
+  <script>
+
+const links = Array.from(document.querySelectorAll('nav a')).filter(a => a.pathname === location.pathname && a.hash);
+const sections = links.map(a => document.querySelector(a.hash)).filter(Boolean);
+if (sections.length && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      for (const a of links) {
+        if (a.hash === '#' + entry.target.id) a.setAttribute('aria-current', 'location');
+        else a.removeAttribute('aria-current');
+      }
+    }
+  }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+}
+  </script>
+</body>
+</html>
