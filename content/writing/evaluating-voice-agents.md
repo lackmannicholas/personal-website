@@ -3,7 +3,7 @@ title: "Your Voice Agent Passed Every Eval. The Caller Hung Up."
 description: "Why transcripts miss voice AI failures, and how to evaluate acoustic quality, conversational timing, and human experience without a labeling army."
 date: 2026-10-08
 lastmod: 2026-10-08
-tags: ["voice-ai", "evals", "architecture"]
+tags: ["evals", "voice-ai", "architecture"]
 draft: true
 ---
 

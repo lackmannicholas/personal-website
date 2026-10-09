@@ -1,4 +1,4 @@
 ---
 title: "Writing"
-description: "Deep dives on agent platforms, real-time systems, and evaluation."
+description: "Engineering notes on agent platforms, real-time systems, distributed systems, AI, evaluation, and lessons from production."
 ---

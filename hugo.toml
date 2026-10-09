@@ -1,12 +1,12 @@
 baseURL = "https://nicklackman.com/"
 locale = "en-US"
-title = "Nick Lackman — Agent Platform & Real-Time Systems"
+title = "Nick Lackman — Distributed Systems & AI"
 enableRobotsTXT = false
 disableKinds = ["taxonomy"]   # no /tags/ index page; each tag still gets /tags/<tag>/
 
 [params]
   author = "Nick Lackman"
-  description = "Nick Lackman is a Staff Software Engineer who builds agent platforms and real-time voice systems: the layer other engineers build their agents on."
+  description = "A personal engineering blog by Nick Lackman on distributed systems, AI, and the lessons of building them in production."
   email = "lackmannicholas@gmail.com"
   github = "lackmannicholas"
   linkedin = "https://www.linkedin.com/in/lackmannicholas"

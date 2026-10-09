@@ -1,12 +1,12 @@
 {{ define "main" }}
 <section class="hero shell" id="top" aria-labelledby="hero-title">
-  <div class="hero-kicker"><span class="eyebrow">Staff Software Engineer · Agent Platform &amp; Real-Time
-      Systems</span><span class="location">Bremerton · Washington</span></div>
+  <div class="hero-kicker"><span class="eyebrow">Staff Software Engineer · Distributed systems &amp; AI</span><span class="location">Bremerton · Washington</span></div>
   <div class="hero-grid">
     <div>
-      <h1 id="hero-title">Agent systems.<br><span>Built to be</span><br>built on.</h1>
-      <p class="intro">I’m Nick. I build the platform layer other engineers build their agents on: agent runtimes,
-        real-time voice infrastructure, and the evaluation that tells a team whether an agent is actually any good.</p>
+      <h1 id="hero-title">Distributed systems.<br><span>AI in</span><br>production.</h1>
+      <p class="intro">I’m Nick, a Staff Software Engineer building the platform layer other engineers build their agents on:
+        agent runtimes, real-time voice infrastructure, and the evaluation that tells a team whether an agent is actually any good.
+        My work sits at the intersection of distributed systems and AI, where the design meets production.</p>
       <a class="primary-link" href="#work">See the work <span aria-hidden="true">↘</span></a>
     </div>
     <aside class="hero-note" aria-label="Current focus">
@@ -87,7 +87,7 @@
     <div class="project-grid">
       <div class="project-copy">
         <h3 id="voice-title">A voice agent is<br>a systems problem.</h3>
-        <p>I designed and built Agentix, the orchestration framework for RealPage’s production leasing AI voice agent,
+        <p>I built Agentix, the orchestration framework for RealPage’s production leasing AI voice agent,
           and led the product from prototype to GA. It currently handles about 6,000 calls a day, with 400,000+ units
           onboarded.</p>
         <p>Profiling and optimizing the full audio pipeline cut median response time from about five seconds to about
@@ -130,21 +130,24 @@
     </div>
   </article>
 
-  <article class="project" aria-labelledby="agentix-title">
-    <div class="project-topline"><span class="project-number">04</span><span class="eyebrow">Voice agent
-        orchestration</span><span class="project-label">Python / LangGraph</span></div>
+  <article class="project" aria-labelledby="infrastructure-title">
+    <div class="project-topline"><span class="project-number">04</span><span class="eyebrow">Developer
+        infrastructure</span><span class="project-label">Terraform / Provisioning</span></div>
     <div class="project-grid">
       <div class="project-copy">
-        <h3 id="agentix-title">Agentix</h3>
-        <p>I designed and built Agentix for real-time LLM orchestration over telephony. It coordinates streaming audio,
-          WebSocket telephony integration, and multi-step LangGraph agents for the production leasing AI voice product.
-        </p>
+        <h3 id="infrastructure-title">Infrastructure that<br>unblocks teams.</h3>
+        <p>At RealPage, I managed engineering teams and restructured Terraform provisioning, reducing new environment
+          creation from six months to one day across 190 engineers.</p>
+        <p>That work sits underneath the application: giving teams the environments they need to build, test,
+          and ship their systems.</p>
       </div>
       <div class="voice-panel">
-        <p class="small-label">Core capabilities</p>
+        <p class="small-label">Provisioning impact</p>
         <ul class="integration-list">
-          <li><span>Streaming</span><strong>Audio and telephony integration</strong></li>
-          <li><span>Orchestration</span><strong>Multi-step LangGraph agents</strong></li>
+          <li><span>Before</span><strong>Six months per environment</strong></li>
+          <li><span>After</span><strong>One day per environment</strong></li>
+          <li><span>Reach</span><strong>190 engineers</strong></li>
+          <li><span>Foundation</span><strong>Terraform provisioning</strong></li>
         </ul>
       </div>
     </div>
@@ -159,7 +162,7 @@
       <p class="eyebrow">02 / Writing</p>
       <h2 id="writing-title">Notes from<br>production.</h2>
     </div>
-    <p class="section-intro">What real-time voice and agent systems teach you once real users are on the line. <a
+    <p class="section-intro">Distributed systems, AI, and lessons from running them in production. <a
         href="/writing/" style="text-decoration:underline;text-underline-offset:5px">All writing ↗</a></p>
   </div>
   {{ partial "post-list.html" . }}
