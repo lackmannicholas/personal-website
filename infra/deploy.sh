@@ -13,27 +13,39 @@ command -v hugo >/dev/null || { echo "Hugo is not installed (brew install hugo)"
 
 cd "$(dirname "$0")/.."
 
-rm -rf public
-hugo --gc --minify
+# Never upload public/: a running preview server can write localhost URLs there.
+build_dir=$(mktemp -d "${TMPDIR:-/tmp}/personal-website-deploy.XXXXXX")
+trap 'rm -rf "$build_dir"' EXIT
+hugo --gc --minify --environment production --baseURL https://nicklackman.com/ --destination "$build_dir"
 
-# HTML and feeds: short cache so edits show up quickly.
-aws s3 sync public/ "s3://${BUCKET}/" --delete \
+if grep -RE '(rel="?canonical"?|property="?og:url"?)[^>]*https?://(localhost|127\.0\.0\.1)' "$build_dir"; then
+  echo "Refusing to deploy preview URLs in canonical or Open Graph metadata." >&2
+  exit 1
+fi
+
+# HTML must revalidate so every page picks up the current fingerprinted stylesheet.
+aws s3 sync "$build_dir/" "s3://${BUCKET}/" --delete \
   --exclude "*" --include "*.html" --exclude "for/*" \
   --content-type "text/html; charset=utf-8" \
-  --cache-control "public, max-age=300"
-aws s3 sync public/ "s3://${BUCKET}/" --delete \
+  --cache-control "no-cache, max-age=0, must-revalidate"
+# sync skips unchanged files, including their metadata. Refresh all HTML headers.
+aws s3 cp "$build_dir/" "s3://${BUCKET}/" --recursive \
+  --exclude "*" --include "*.html" --exclude "for/*" \
+  --content-type "text/html; charset=utf-8" \
+  --cache-control "no-cache, max-age=0, must-revalidate"
+aws s3 sync "$build_dir/" "s3://${BUCKET}/" --delete \
   --exclude "*" --include "*.xml" --exclude "for/*" \
   --content-type "application/xml; charset=utf-8" \
   --cache-control "public, max-age=300"
 
 # Everything else (CSS, robots.txt, images).
-aws s3 sync public/ "s3://${BUCKET}/" --delete \
+aws s3 sync "$build_dir/" "s3://${BUCKET}/" --delete \
   --exclude "*.html" --exclude "*.xml" --exclude "for/*" \
   --cache-control "public, max-age=3600"
 
 # Company-specific pages: upload if present, never delete.
-if [ -d public/for ]; then
-  aws s3 sync public/for/ "s3://${BUCKET}/for/" \
+if [ -d "$build_dir/for" ]; then
+  aws s3 sync "$build_dir/for/" "s3://${BUCKET}/for/" \
     --content-type "text/html; charset=utf-8" \
     --cache-control "public, max-age=300"
 else

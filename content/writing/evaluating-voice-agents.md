@@ -4,7 +4,8 @@ description: "Why transcripts miss voice AI failures, and how to evaluate acoust
 date: 2026-10-08
 lastmod: 2026-10-08
 tags: ["evals", "voice-ai", "architecture"]
-draft: true
+draft: false
+image: "/images/writing/one-transcript-four-experiences.png"
 ---
 
 Your voice agent passed every eval you have. The transcript looks perfect. The tool calls all fired. And the caller hung up on it.

@@ -34,6 +34,11 @@ brew install hugo   # once
 BUCKET=nicklackman.com DISTRIBUTION_ID=E37HOY2EC40ION ./infra/deploy.sh
 ```
 
+Both `./deploy.sh` and `./infra/deploy.sh` build into a temporary directory with
+the production base URL set explicitly. Do not upload `public/` from a preview
+server: its canonical and Open Graph URLs may point to localhost. Set a post's
+`image` field to a `/images/...` path to include an image in social link previews.
+
 ## Analytics
 
 Umami Cloud tracks pageviews across the home page, writing, and company-specific
